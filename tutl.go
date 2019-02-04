@@ -65,7 +65,7 @@ type TestingT interface {
 // V() just converts a value to a string.  It is similar to
 // fmt.Sprintf("%v", v).  But it treats []byte values as strings.
 //
-func V(v interface {}) string {
+func V(v interface{}) string {
     switch t := v.(type) {
     case string:
         return t
@@ -164,12 +164,12 @@ func Char(c byte) string {
 // is just an alias for "int32" so S('x') == 'x' == 120 while
 // S("x"[0]) == "'x'".
 //
-func S(vs... interface {}) string {
+func S(vs ...interface{}) string {
     return Default.S(vs...)
 }
 
 
-func (c Context) S(vs... interface {}) string {
+func (c Context) S(vs ...interface{}) string {
     ss := make([]string, len(vs))
     for j, i := range vs {
         s := ""
@@ -216,13 +216,13 @@ func (c Context) S(vs... interface {}) string {
 // Is() returns whether the test passed, which is useful for skipping tests
 // that would make no sense to run given a prior failure.
 //
-func Is(want, got interface {}, desc string, t TestingT) bool {
+func Is(want, got interface{}, desc string, t TestingT) bool {
     t.Helper()
     return Default.Is(want, got, desc, t)
 }
 
 
-func (c Context) Is(want, got interface {}, desc string, t TestingT) bool {
+func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
 
     t.Helper()
     vwant := V(want)
@@ -263,14 +263,14 @@ func (c Context) Is(want, got interface {}, desc string, t TestingT) bool {
 // returned is the number of match strings as it is assumed that none of them
 // would have matched the empty string).
 //
-func Like(got interface {}, desc string, t TestingT, match... string) int {
+func Like(got interface{}, desc string, t TestingT, match ...string) int {
     t.Helper()
     return Default.Like(got, desc, t, match...)
 }
 
 
 func (c Context) Like(
-    got interface {}, desc string, t TestingT, match... string,
+    got interface{}, desc string, t TestingT, match ...string,
 ) int {
     t.Helper()
     if 0 == len(match) {
@@ -360,7 +360,7 @@ func ShowStackOnInterrupt() {
 // A type to allow an alternate calling style, especially for Is() and Like().
 type TUTL struct {
     TestingT
-    c   Context
+    c Context
 }
 
 
@@ -406,7 +406,7 @@ func New(t TestingT) TUTL { return TUTL{t, Default} }
 // Same as the non-method Is() except the *testing.T argument is held in
 // the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) Is(want, got interface {}, desc string) bool {
+func (u TUTL) Is(want, got interface{}, desc string) bool {
     u.Helper()
     return u.c.Is(want, got, desc, u)
 }
@@ -415,7 +415,7 @@ func (u TUTL) Is(want, got interface {}, desc string) bool {
 // Same as the non-method Like() except the *testing.T argument is held in
 // the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) Like(got interface {}, desc string, match... string) int {
+func (u TUTL) Like(got interface{}, desc string, match ...string) int {
     u.Helper()
     return u.c.Like(got, desc, u, match...)
 }
@@ -432,7 +432,7 @@ func (u *TUTL) EscapeNewline(b bool) { u.c.EscapeNewline(b) }
 // copies the EscapeNewline() state from the Default Conext but future
 // calls to EscapeNewline() only impact one Context, not any other copies.
 //
-func (u TUTL) S(vs... interface {}) string { return u.c.S(vs...) }
+func (u TUTL) S(vs ...interface{}) string { return u.c.S(vs...) }
 
 
 // Sets the maximum line width for single-line test failure output, measured
@@ -444,8 +444,8 @@ func (u *TUTL) SetLineWidth(w int) {
 }
 
 
-func (u TUTL) V(v interface {}) string { return V(v) }
-func (u TUTL) DoubleQuote(s string) string { return DoubleQuote(s) }
-func (u TUTL) Escape(r rune) string { return Escape(r) }
-func (u TUTL) Rune(r rune) string { return Rune(r) }
-func (u TUTL) Char(c byte) string { return Char(c) }
+func (u TUTL) V(v interface{}) string       { return V(v) }
+func (u TUTL) DoubleQuote(s string) string  { return DoubleQuote(s) }
+func (u TUTL) Escape(r rune) string         { return Escape(r) }
+func (u TUTL) Rune(r rune) string           { return Rune(r) }
+func (u TUTL) Char(c byte) string           { return Char(c) }

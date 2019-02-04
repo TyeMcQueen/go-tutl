@@ -75,9 +75,9 @@ func TestS(t *testing.T) {
     u.Is(`"\n"`, u.S("\n"), "S requested esc lf string", t)
     u.EscapeNewline(false)
 
-    u.Is("AB", u.S("A","B"), "simple concat", t)
-    u.Is("'A''B'", u.S("A"[0],"B"[0]), "simple concat not strings", t)
-    u.Is("\\xA0", u.S("\xA0",""), "0xA0 binary string", t)
+    u.Is("AB", u.S("A", "B"), "simple concat", t)
+    u.Is("'A''B'", u.S("A"[0], "B"[0]), "simple concat not strings", t)
+    u.Is("\\xA0", u.S("\xA0", ""), "0xA0 binary string", t)
 }
 
 
@@ -92,15 +92,15 @@ func TestRune(t *testing.T) {
     u.Is(`'\xC2'`, u.Char("\u00A0"[0]), "NBSp 1st byte", t)
     u.Is(`'\xA0'`, u.Char("\u00A0"[1]), "NBSp 2nd byte", t)
 
-    u.Is(`'\n'`, u.Rune(10),   `\n rune`, t)
+    u.Is(`'\n'`, u.Rune(10), `\n rune`, t)
     u.Is(`'\r'`, u.Rune('\r'), `\r rune`, t)
     u.Is(`'\t'`, u.Rune('\t'), `\t rune`, t)
 
-    u.Is(`'\x00'`, u.Rune(0),      "0 rune", t)
-    u.Is(`'\x07'`, u.Rune('\a'),   `\\a rune`, t)
-    u.Is(`'\x08'`, u.Rune('\b'),   `\\b rune`, t)
-    u.Is(`'\x0B'`, u.Rune('\v'),   `\\v rune`, t)
-    u.Is(`'\x0C'`, u.Rune('\f'),   `\\f rune`, t)
+    u.Is(`'\x00'`, u.Rune(0), "0 rune", t)
+    u.Is(`'\x07'`, u.Rune('\a'), `\\a rune`, t)
+    u.Is(`'\x08'`, u.Rune('\b'), `\\b rune`, t)
+    u.Is(`'\x0B'`, u.Rune('\v'), `\\v rune`, t)
+    u.Is(`'\x0C'`, u.Rune('\f'), `\\f rune`, t)
     u.Is(`'\x1B'`, u.Rune('\x1b'), "0x1B rune", t)
     u.Is(`'\x1F'`, u.Rune('\x1f'), "0x1F rune", t)
     u.Is(`'\x7F'`, u.Rune('\x7F'), "del rune", t)
@@ -112,11 +112,12 @@ func TestRune(t *testing.T) {
 
 
 type mock struct {
-    fails   int
-    output  []string
+    fails  int
+    output []string
 }
+
 func (m *mock) Helper() { return }
-func (m *mock) clear() { m.output = m.output[:0]; m.fails = 0 }
+func (m *mock) clear()  { m.output = m.output[:0]; m.fails = 0 }
 func (m *mock) Error(args ...interface{}) {
     m.fails++
     m.Log(args...)
@@ -132,7 +133,7 @@ func (m *mock) Logf(format string, args ...interface{}) {
     m.output = append(m.output, fmt.Sprintf(format, args...))
 }
 
-func (m *mock) isOutput(desc string, t *testing.T, os... string) {
+func (m *mock) isOutput(desc string, t *testing.T, os ...string) {
     t.Helper()
     if u.Is(len(os), len(m.output), desc, t) {
         for i, o := range os {
@@ -144,9 +145,9 @@ func (m *mock) isOutput(desc string, t *testing.T, os... string) {
     m.clear()
 }
 
-func (m *mock) likeOutput(desc string, t *testing.T, likes... string) {
+func (m *mock) likeOutput(desc string, t *testing.T, likes ...string) {
     t.Helper()
-    if u.Is(1, len(m.output), desc + " count", t) {
+    if u.Is(1, len(m.output), desc+" count", t) {
         u.Like(m.output[0], desc, t, likes...)
     } else {
         t.Log("Surprise output:\n", m.output)
