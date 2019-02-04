@@ -15,6 +15,29 @@ func TestMain(m *testing.M) {
 }
 
 
+func TestContext(t *testing.T) {
+    o := u.New(t)
+
+    u.Is(u.S("hi"), o.S("hi"), "o.S", t)
+    o.Is(u.V(byte(32)), o.V(byte(32)), "o.V")
+    o.Is(u.DoubleQuote("hi"), o.DoubleQuote("hi"), "o.DoubleQuote")
+    o.Is(o.Escape('\t'), u.Escape('\t'), "o.Escape")
+    o.Is(o.Rune('\r'), u.Rune('\r'), "o.Rune")
+    o.Is(o.Char('\n'), u.Char('\n'), "o.Rune")
+
+    u.EscapeNewline(true)
+    defer u.EscapeNewline(false)
+    p := u.New(t)
+    u.Is("\"\\n\"", u.S("\n"), "u escapes", t)
+    u.Is("\"\\n\"", p.S("\n"), "p inherits", t)
+    u.Is("\"\n\"", o.S("\n"), "o default", t)
+    p.EscapeNewline(false)
+    u.Is("\"\\n\"", u.S("\n"), "u unchanged", t)
+    u.Is("\"\n\"", p.S("\n"), "p changed", t)
+    u.Is("\"\n\"", o.S("\n"), "o unchanged", t)
+}
+
+
 func TestS(t *testing.T) {
     if u.V(true) == u.V(false) {
         t.Fatalf("Too broken to even test itself.  true=(%s) false=(%s)\n",
@@ -85,4 +108,139 @@ func TestRune(t *testing.T) {
     u.Is("'\u00FE'", u.Rune('\xFE'), "0xFE rune is not escaped", t)
 
     u.Is(`'\xFE'`, u.Char('\xFE'), "0xFE byte", t)
+}
+
+
+type mock struct {
+    fails   int
+    output  []string
+}
+func (m *mock) Helper() { return }
+func (m *mock) clear() { m.output = m.output[:0]; m.fails = 0 }
+func (m *mock) Error(args ...interface{}) {
+    m.fails++
+    m.Log(args...)
+}
+func (m *mock) Errorf(format string, args ...interface{}) {
+    m.fails++
+    m.Logf(format, args...)
+}
+func (m *mock) Log(args ...interface{}) {
+    m.output = append(m.output, fmt.Sprintln(args...))
+}
+func (m *mock) Logf(format string, args ...interface{}) {
+    m.output = append(m.output, fmt.Sprintf(format, args...))
+}
+
+func (m *mock) isOutput(desc string, t *testing.T, os... string) {
+    t.Helper()
+    if u.Is(len(os), len(m.output), desc, t) {
+        for i, o := range os {
+            u.Is(o, m.output[i], u.S(desc, " ", i), t)
+        }
+    } else {
+        t.Log("Surprise output:\n", m.output)
+    }
+    m.clear()
+}
+
+func (m *mock) likeOutput(desc string, t *testing.T, likes... string) {
+    t.Helper()
+    if u.Is(1, len(m.output), desc + " count", t) {
+        u.Like(m.output[0], desc, t, likes...)
+    } else {
+        t.Log("Surprise output:\n", m.output)
+    }
+    m.clear()
+}
+
+
+func TestOutput(t *testing.T) {
+    m := new(mock)  // Mock controller
+    s := u.New(m)   // Simulated tester
+
+    u.Is(false, s.Is(true, false, "anti-tautology"), "Is false", t)
+    m.isOutput("simple out", t, "Got false not true for anti-tautology.\n")
+
+    //u.Is("longish stuff", "longer stuff", "were stuff longer or longish", t)
+    s.Is("longish stuff", "longer stuff", "were stuff longer or longish")
+    m.isOutput("longish out", t,
+        "\n" + `Got "longer stuff" not "longish stuff" for ` +
+        `were stuff longer or longish.` + "\n")
+
+    s.Is("longish stuff", "longer stuffy", "were stuff longer or longish")
+    m.isOutput("longer out", t,
+        "\nGot \"longer stuffy\"" +
+        "\nnot \"longish stuff\"" +
+        "\nfor were stuff longer or longish.\n")
+
+    u.Is(1, s.Like("", "description"), "1 failure if like no strings", t)
+    m.likeOutput("like no strings", t,
+        "*called ", " Like[(][)]", "*too few arg", "*in test code")
+
+    u.Is(1, s.Like("foo", "description", "fo+", "+fo"), "1 of 2 regex bad", t)
+    m.likeOutput("1 of 2 regex bad out", t,
+        "*invalid regexp ", "*(+fo)", "in test code")
+
+    u.Is(2, s.Like("", "empty", "*M", "*T"), "all fail for empty", t)
+    m.likeOutput("empty string out", t,
+        "*no string ", " Like[(][)]", "* got empty string.")
+
+    u.Is(2, s.Like(error(nil), "no err", "*M", "*T"), "all fail for nil err", t)
+    m.likeOutput("empty string out", t,
+        "*no string ", " Like[(][)]", "* got nil.")
+
+    u.Is(2, s.Like(nil, "nil", "*M", "*T"), "all fail for nil interface", t)
+    m.likeOutput("empty string out", t,
+        "*no string ", " Like[(][)]", "* got nil.")
+
+    u.Is(2, s.Like(fmt.Errorf(""), `""`, "*M", "*T"), `all fail for ""`, t)
+    m.likeOutput(`became "" out`, t,
+        "*no string ", " Like[(][)]", "* got blank.")
+
+    u.Is(0, s.Like("hello", "hello", "l{2,}", "*LL"), "0 for pass", t)
+    if !u.Is(0, len(m.output), "no output for success", t) {
+        t.Log("Surprise output:\n", m.output)
+        m.clear()
+    }
+
+    u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3", t)
+    m.isOutput("2 of 3 not like out", t,
+        "No <db> in <good bye> for bye.\n",
+        "Not like /Bye/ in <good bye> for bye.\n")
+
+    long := "not really long"
+    u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
+    m.isOutput("1 of 2 long out", t,
+        "\nNot like /Really/ in <" + long + "> for longish like.\n",
+        "No <strong> in <" + long + "> for longish like.\n")
+
+    long = "longer but not super long"
+    // u.Like(long, "longish like", t, "Really", "*strong")
+    u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
+    m.isOutput("1 of 2 long out", t,
+        "\nNot like /Really/ in <" + long + "> for longish like.\n",
+        "\nNo <strong> in <" + long + "> for longish like.\n")
+
+    long = "This string is pretty long, requiring extra newlines. Thanks!"
+    u.Is(1, s.Like(long, "long like", "*strong", "Thanks"), "1 of 2 long", t)
+    m.likeOutput("1 of 2 long out", t,
+        "\nNo  <strong>\n", "\nin  <" + long + ">\n", "\nfor long like.\n")
+
+    u.Is(1, s.Like(long, "long like2", "*string", "thanks"), "1 of 2nd long", t)
+    m.likeOutput("1 of 2 long out", t,
+        "\nNot like /thanks/\n", "\nin <" + long + ">\n", "\nfor long like2.\n")
+
+    u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
+    m.isOutput("newlines out", t,
+        "\nGot \"high\n\"\nnot \"hi\n\"\nfor newlines.\n")
+
+    u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
+    m.isOutput("newlines out", t,
+        "\nNo  <high>\nin  <hi\n>\nfor like lf.\n",
+        "\nNot like /Hi/\nin <hi\n>\nfor like lf.\n")
+
+    s.SetLineWidth(0)
+    u.Is(false, s.Is(5, 2+2, "math joke"), "joke is false", t)
+    m.isOutput("joke out", t, "\nGot 4\nnot 5\nfor math joke.\n")
 }
