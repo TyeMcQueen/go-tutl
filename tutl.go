@@ -223,7 +223,6 @@ func Is(want, got interface{}, desc string, t TestingT) bool {
 
 
 func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
-
     t.Helper()
     vwant := V(want)
     vgot := V(got)
@@ -243,6 +242,35 @@ func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
     } else {
         t.Errorf("\nGot %s\nnot %s\nfor %s.\n", c.S(got), c.S(want), desc)
     }
+    return false
+}
+
+
+// IsNot() tests that the first two arguments are converted to different
+// strings by V().  If they are not, then a diagnostic is displayed which also
+// causes the unit test to fail.  The diagnostic is similar to
+// "Got unwanted {got} for {desc}.\n" except that S() is used for 'got' so
+// control characters will be escaped and their values may be in quotes.
+//
+// IsNot() returns whether the test passed, which is useful for skipping tests
+// that would make no sense to run given a prior failure.
+//
+func IsNot(hate, got interface{}, desc string, t TestingT) bool {
+    t.Helper()
+    return Default.IsNot(hate, got, desc, t)
+}
+
+
+func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
+    t.Helper()
+    vhate := V(hate)
+    vgot := V(got)
+    if vhate != vgot {
+    //  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
+        return true
+    }
+    line := "Got unwanted " + c.S(got) + " for " + desc + "."
+    t.Error(line)
     return false
 }
 
@@ -409,6 +437,15 @@ func New(t TestingT) TUTL { return TUTL{t, Default} }
 func (u TUTL) Is(want, got interface{}, desc string) bool {
     u.Helper()
     return u.c.Is(want, got, desc, u)
+}
+
+
+// Same as the non-method IsNot() except the *testing.T argument is held in
+// the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
+    u.Helper()
+    return u.c.IsNot(hate, got, desc, u)
 }
 
 
