@@ -2,25 +2,25 @@
 
 go-tutl is a Trivial Unit Testing Library (for Go).  Example usage:
 
-    package duration
-    import (
-        "testing"
+	package duration
+	import (
+		"testing"
 
-        u "github.com/TyeMcQueen/go-tutl"
-        _ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
-    )
+		u "github.com/TyeMcQueen/go-tutl"
+		_ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
+	)
 
-    func TestDur(t *testing.T) {
-        u.Is("1m 1s", DurationAsText(61), "61", t)
+	func TestDur(t *testing.T) {
+		u.Is("1m 1s", DurationAsText(61), "61", t)
 
-        got, err := TextAsDuration("1h 5s")
-        u.Is(nil, err, "Error from '1h 5s'", t)
-        u.Is(60*60+5, got, "'1h 5s'", t)
+		got, err := TextAsDuration("1h 5s")
+		u.Is(nil, err, "Error from '1h 5s'", t)
+		u.Is(60*60+5, got, "'1h 5s'", t)
 
-        got, err = TextAsDuration("3 fortnight")
-        u.Like(err, "Error from '3 fortnight'", t,
-            "(Unknown|Invalid) unit", "*fortnight")
-    }
+		got, err = TextAsDuration("3 fortnight")
+		u.Like(err, "Error from '3 fortnight'", t,
+			"(Unknown|Invalid) unit", "*fortnight")
+	}
 
 See also "go doc github.com/TyeMcQueen/go-tutl/hang".
 
@@ -28,19 +28,19 @@ See also "go doc github.com/TyeMcQueen/go-tutl/hang".
 package tutl
 
 import (
-    "fmt"
-    "os"
-    "os/signal"
-    "regexp"
-    "runtime/debug"
-    "strings"
-    "syscall"
-    "unicode/utf8"
+	"fmt"
+	"os"
+	"os/signal"
+	"regexp"
+	"runtime/debug"
+	"strings"
+	"syscall"
+	"unicode/utf8"
 )
 
 type Context struct {
-    doNotEscape rune
-    LineWidth   int
+	doNotEscape rune
+	LineWidth   int
 }
 
 // You can just directly set the maximum line width for single-line test
@@ -54,11 +54,11 @@ var Default = Context{doNotEscape: '\n', LineWidth: 72}
 // An interface covering the methods of *testing.T that TUTL uses.  This
 // makes it easier to test this test library.
 type TestingT interface {
-    Helper()
-    Error(args ...interface{})
-    Errorf(format string, args ...interface{})
-    Log(args ...interface{})
-    Logf(format string, args ...interface{})
+	Helper()
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Log(args ...interface{})
+	Logf(format string, args ...interface{})
 }
 
 
@@ -66,13 +66,13 @@ type TestingT interface {
 // fmt.Sprintf("%v", v).  But it treats []byte values as strings.
 //
 func V(v interface{}) string {
-    switch t := v.(type) {
-    case string:
-        return t
-    case []byte:
-        return string(t)
-    }
-    return fmt.Sprintf("%v", v)
+	switch t := v.(type) {
+	case string:
+		return t
+	case []byte:
+		return string(t)
+	}
+	return fmt.Sprintf("%v", v)
 }
 
 
@@ -80,9 +80,9 @@ func V(v interface{}) string {
 // characters escaped.
 //
 func DoubleQuote(s string) string {
-    s = strings.Replace(s, "\\", "\\\\", -1)
-    s = strings.Replace(s, "\"", "\\\"", -1)
-    return fmt.Sprintf("\"%s\"", s)
+	s = strings.Replace(s, "\\", "\\\\", -1)
+	s = strings.Replace(s, "\"", "\\\"", -1)
+	return fmt.Sprintf("\"%s\"", s)
 }
 
 
@@ -93,11 +93,11 @@ func EscapeNewline(b bool) { Default.EscapeNewline(b) }
 
 
 func (c *Context) EscapeNewline(b bool) {
-    if b {
-        c.doNotEscape = ' '
-    } else {
-        c.doNotEscape = '\n'
-    }
+	if b {
+		c.doNotEscape = ' '
+	} else {
+		c.doNotEscape = '\n'
+	}
 }
 
 
@@ -108,17 +108,17 @@ func (c *Context) EscapeNewline(b bool) {
 // like \u009B.  EscapeNewline(false) does not affect Escape().
 //
 func Escape(r rune) string {
-    switch r {
-    case '\n':  return `\n`
-    case '\r':  return `\r`
-    case '\t':  return `\t`
-    }
-    if r < 32 || 0x7F == r {
-        return fmt.Sprintf("\\x%02X", r)
-    } else if 0x80 <= r && r < 0xa0 {
-        return fmt.Sprintf("\\u00%02X", r)
-    }
-    return fmt.Sprintf("%c", r)
+	switch r {
+	case '\n':  return `\n`
+	case '\r':  return `\r`
+	case '\t':  return `\t`
+	}
+	if r < 32 || 0x7F == r {
+		return fmt.Sprintf("\\x%02X", r)
+	} else if 0x80 <= r && r < 0xa0 {
+		return fmt.Sprintf("\\u00%02X", r)
+	}
+	return fmt.Sprintf("%c", r)
 }
 
 
@@ -130,7 +130,7 @@ func Escape(r rune) string {
 // and `'\\'` are rather ugly).
 //
 func Rune(r rune) string {
-    return fmt.Sprintf("'%s'", Escape(r))
+	return fmt.Sprintf("'%s'", Escape(r))
 }
 
 
@@ -139,10 +139,10 @@ func Rune(r rune) string {
 // converting them UTF-8).
 //
 func Char(c byte) string {
-    if 0xA0 <= c {
-        return fmt.Sprintf("'\\x%02X'", c)
-    }
-    return Rune(rune(c))
+	if 0xA0 <= c {
+		return fmt.Sprintf("'\\x%02X'", c)
+	}
+	return Rune(rune(c))
 }
 
 
@@ -165,43 +165,43 @@ func Char(c byte) string {
 // S("x"[0]) == "'x'".
 //
 func S(vs ...interface{}) string {
-    return Default.S(vs...)
+	return Default.S(vs...)
 }
 
 
 func (c Context) S(vs ...interface{}) string {
-    ss := make([]string, len(vs))
-    for j, i := range vs {
-        s := ""
-        switch v := i.(type) {
-        case byte:
-            s = Char(v)
-        case error:
-            s = DoubleQuote(v.Error())
-        case []byte:
-            s = DoubleQuote(string(v))
-        case string:
-            if 1 == len(vs) {
-                s = DoubleQuote(v)
-            } else {
-                s = v
-            }
-        default:
-            s = fmt.Sprintf("%v", i)
-        }
-        buf := make([]byte, 0, len(s))
-        for i, r := range s {
-            if 0xFFFD == r {
-                buf = append(buf, []byte(fmt.Sprintf("\\x%02X", s[i]))...)
-            } else if r < 32 && r != c.doNotEscape || 0x7f <= r {
-                buf = append(buf, []byte(Escape(r))...)
-            } else {
-                buf = append(buf, byte(r))
-            }
-        }
-        ss[j] = string(buf)
-    }
-    return strings.Join(ss, "")
+	ss := make([]string, len(vs))
+	for j, i := range vs {
+		s := ""
+		switch v := i.(type) {
+		case byte:
+			s = Char(v)
+		case error:
+			s = DoubleQuote(v.Error())
+		case []byte:
+			s = DoubleQuote(string(v))
+		case string:
+			if 1 == len(vs) {
+				s = DoubleQuote(v)
+			} else {
+				s = v
+			}
+		default:
+			s = fmt.Sprintf("%v", i)
+		}
+		buf := make([]byte, 0, len(s))
+		for i, r := range s {
+			if 0xFFFD == r {
+				buf = append(buf, []byte(fmt.Sprintf("\\x%02X", s[i]))...)
+			} else if r < 32 && r != c.doNotEscape || 0x7f <= r {
+				buf = append(buf, []byte(Escape(r))...)
+			} else {
+				buf = append(buf, byte(r))
+			}
+		}
+		ss[j] = string(buf)
+	}
+	return strings.Join(ss, "")
 }
 
 
@@ -217,32 +217,32 @@ func (c Context) S(vs ...interface{}) string {
 // that would make no sense to run given a prior failure.
 //
 func Is(want, got interface{}, desc string, t TestingT) bool {
-    t.Helper()
-    return Default.Is(want, got, desc, t)
+	t.Helper()
+	return Default.Is(want, got, desc, t)
 }
 
 
 func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
-    t.Helper()
-    vwant := V(want)
-    vgot := V(got)
-    if vwant == vgot {
-    //  t.Log("want:", vwant, " got:", vgot, " for:", desc)
-        return true
-    }
-    line := "Got " + c.S(got) + " not " + c.S(want) + " for " + desc + "."
-    wid := utf8.RuneCount([]byte(line))
-    if strings.Contains(line, "\n") {
-        wid = 1 + c.LineWidth
-    }
-    if wid <= c.LineWidth-20 {
-        t.Error(line)
-    } else if wid <= c.LineWidth {
-        t.Error("\n" + line)
-    } else {
-        t.Errorf("\nGot %s\nnot %s\nfor %s.\n", c.S(got), c.S(want), desc)
-    }
-    return false
+	t.Helper()
+	vwant := V(want)
+	vgot := V(got)
+	if vwant == vgot {
+	//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
+		return true
+	}
+	line := "Got " + c.S(got) + " not " + c.S(want) + " for " + desc + "."
+	wid := utf8.RuneCount([]byte(line))
+	if strings.Contains(line, "\n") {
+		wid = 1 + c.LineWidth
+	}
+	if wid <= c.LineWidth-20 {
+		t.Error(line)
+	} else if wid <= c.LineWidth {
+		t.Error("\n" + line)
+	} else {
+		t.Errorf("\nGot %s\nnot %s\nfor %s.\n", c.S(got), c.S(want), desc)
+	}
+	return false
 }
 
 
@@ -256,22 +256,22 @@ func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
 // that would make no sense to run given a prior failure.
 //
 func IsNot(hate, got interface{}, desc string, t TestingT) bool {
-    t.Helper()
-    return Default.IsNot(hate, got, desc, t)
+	t.Helper()
+	return Default.IsNot(hate, got, desc, t)
 }
 
 
 func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
-    t.Helper()
-    vhate := V(hate)
-    vgot := V(got)
-    if vhate != vgot {
-    //  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
-        return true
-    }
-    line := "Got unwanted " + c.S(got) + " for " + desc + "."
-    t.Error(line)
-    return false
+	t.Helper()
+	vhate := V(hate)
+	vgot := V(got)
+	if vhate != vgot {
+	//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
+		return true
+	}
+	line := "Got unwanted " + c.S(got) + " for " + desc + "."
+	t.Error(line)
+	return false
 }
 
 
@@ -292,76 +292,76 @@ func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 // would have matched the empty string).
 //
 func Like(got interface{}, desc string, t TestingT, match ...string) int {
-    t.Helper()
-    return Default.Like(got, desc, t, match...)
+	t.Helper()
+	return Default.Like(got, desc, t, match...)
 }
 
 
 func (c Context) Like(
-    got interface{}, desc string, t TestingT, match ...string,
+	got interface{}, desc string, t TestingT, match ...string,
 ) int {
-    t.Helper()
-    if 0 == len(match) {
-        t.Errorf("Called Like() with too few arguments in test code\n")
-        return 1
-    }
+	t.Helper()
+	if 0 == len(match) {
+		t.Errorf("Called Like() with too few arguments in test code\n")
+		return 1
+	}
 
-    sgot := V(got)
-    empty := ""
-    if nil == got {
-        empty = "nil"
-    } else if s, ok := got.(string); ok && "" == s {
-        empty = "empty string"
-    } else if "" == sgot {
-        empty = "blank"
-    }
-    if "" != empty {
-        t.Errorf("No string to check what it is Like(); got %s.\n", empty)
-        return len(match)
-    }
+	sgot := V(got)
+	empty := ""
+	if nil == got {
+		empty = "nil"
+	} else if s, ok := got.(string); ok && "" == s {
+		empty = "empty string"
+	} else if "" == sgot {
+		empty = "blank"
+	}
+	if "" != empty {
+		t.Errorf("No string to check what it is Like(); got %s.\n", empty)
+		return len(match)
+	}
 
-    failed := 0
-    lgot := strings.ToLower(sgot)
-    for _, m := range match {
-        if '*' == m[0] {
-            lwant := strings.ToLower(m[1:])
-            if !strings.Contains(lgot, lwant) {
-                failed++
-                line := fmt.Sprintf(
-                    "No <%s> in <%s> for %s.", m[1:], sgot, desc)
-                wid := utf8.RuneCount([]byte(line))
-                if strings.Contains(line, "\n") {
-                    wid = 1 + c.LineWidth
-                }
-                if wid <= c.LineWidth-20 {
-                    t.Error(line)
-                } else if wid <= c.LineWidth {
-                    t.Error("\n" + line)
-                } else {
-                    t.Errorf("\nNo  <%s>\nin  <%s>\nfor %s.\n",
-                        m[1:], sgot, desc)
-                }
-            }
-        } else if re, err := regexp.Compile(m); nil != err {
-            failed++
-            t.Errorf("Invalid regexp (%s) in test code: %v\n", m, err)
-        } else if "" == re.FindString(sgot) {
-            failed++
-            line := fmt.Sprintf("Not like /%s/ in <%s> for %s.", m, sgot, desc)
-            wid := utf8.RuneCount([]byte(line))
-            if strings.Contains(line, "\n") {
-                wid = 1 + c.LineWidth
-            }
-            if wid <= c.LineWidth-20 {
-                t.Error(line)
-            } else if wid <= c.LineWidth {
-                t.Error("\n" + line)
-            } else {
-                t.Errorf("\nNot like /%s/\nin <%s>\nfor %s.\n", m, sgot, desc)
-            }
-        }
-    }
-    return failed
+	failed := 0
+	lgot := strings.ToLower(sgot)
+	for _, m := range match {
+		if '*' == m[0] {
+			lwant := strings.ToLower(m[1:])
+			if !strings.Contains(lgot, lwant) {
+				failed++
+				line := fmt.Sprintf(
+					"No <%s> in <%s> for %s.", m[1:], sgot, desc)
+				wid := utf8.RuneCount([]byte(line))
+				if strings.Contains(line, "\n") {
+					wid = 1 + c.LineWidth
+				}
+				if wid <= c.LineWidth-20 {
+					t.Error(line)
+				} else if wid <= c.LineWidth {
+					t.Error("\n" + line)
+				} else {
+					t.Errorf("\nNo  <%s>\nin  <%s>\nfor %s.\n",
+						m[1:], sgot, desc)
+				}
+			}
+		} else if re, err := regexp.Compile(m); nil != err {
+			failed++
+			t.Errorf("Invalid regexp (%s) in test code: %v\n", m, err)
+		} else if "" == re.FindString(sgot) {
+			failed++
+			line := fmt.Sprintf("Not like /%s/ in <%s> for %s.", m, sgot, desc)
+			wid := utf8.RuneCount([]byte(line))
+			if strings.Contains(line, "\n") {
+				wid = 1 + c.LineWidth
+			}
+			if wid <= c.LineWidth-20 {
+				t.Error(line)
+			} else if wid <= c.LineWidth {
+				t.Error("\n" + line)
+			} else {
+				t.Errorf("\nNot like /%s/\nin <%s>\nfor %s.\n", m, sgot, desc)
+			}
+		}
+	}
+	return failed
 }
 
 
@@ -377,18 +377,18 @@ func (c Context) Like(
 //
 func ShowStackOnInterrupt() {
 
-    sig := make(chan os.Signal, 1)
-    signal.Notify(sig, syscall.SIGINT)
-    _ = <-sig
-    debug.SetTraceback("all")
-    panic("Interrupted")
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT)
+	_ = <-sig
+	debug.SetTraceback("all")
+	panic("Interrupted")
 }
 
 
 // A type to allow an alternate calling style, especially for Is() and Like().
 type TUTL struct {
-    TestingT
-    c Context
+	TestingT
+	c Context
 }
 
 
@@ -435,8 +435,8 @@ func New(t TestingT) TUTL { return TUTL{t, Default} }
 // the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) Is(want, got interface{}, desc string) bool {
-    u.Helper()
-    return u.c.Is(want, got, desc, u)
+	u.Helper()
+	return u.c.Is(want, got, desc, u)
 }
 
 
@@ -444,8 +444,8 @@ func (u TUTL) Is(want, got interface{}, desc string) bool {
 // the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
-    u.Helper()
-    return u.c.IsNot(hate, got, desc, u)
+	u.Helper()
+	return u.c.IsNot(hate, got, desc, u)
 }
 
 
@@ -453,8 +453,8 @@ func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 // the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) Like(got interface{}, desc string, match ...string) int {
-    u.Helper()
-    return u.c.Like(got, desc, u, match...)
+	u.Helper()
+	return u.c.Like(got, desc, u, match...)
 }
 
 
@@ -477,7 +477,7 @@ func (u TUTL) S(vs ...interface{}) string { return u.c.S(vs...) }
 // with unescaped newlines, then single-line output will not be used.
 //
 func (u *TUTL) SetLineWidth(w int) {
-    u.c.LineWidth = w
+	u.c.LineWidth = w
 }
 
 
