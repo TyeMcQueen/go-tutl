@@ -34,6 +34,7 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"syscall"
 	"unicode/utf8"
 )
@@ -371,6 +372,9 @@ func (c Context) Like(
 }
 
 
+var atInterrupt = make([]func(), 0, 16)
+var aiMu sync.Mutex
+
 // If you have a TestMain() function, then you can add
 //
 //      go u.ShowStackOnInterrupt()
@@ -381,13 +385,47 @@ func (c Context) Like(
 //
 // See also "go doc github.com/TyeMcQueen/go-tutl/hang".
 //
+// ShowStackOnInterrupt() can also be used from non-test programs.
+//
 func ShowStackOnInterrupt() {
-
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT)
 	_ = <-sig
+
+	aiMu.Lock()
+	// Make a reversed copy of the atInterrupt slice:
+	cp := make([]func(), len(atInterrupt))
+	for i, ai := range atInterrupt {
+		cp[len(cp)-1-i] = ai
+	}
+	aiMu.Unlock()
+
+	// Call functions registered via AtInterrupt(), in reverse order:
+	for _, ai := range cp {
+		ai()
+	}
+
 	debug.SetTraceback("all")
 	panic("Interrupted")
+}
+
+
+// AtInterrupt registers a function to be called if the test run is
+// interrupted (by the user typing Ctrl-C or whatever sends SIGINT).
+// The function registered first is run last.  You must have called
+// ShowStackOnInterrupt() or AtInterrupt() will do nothing useful.
+//
+// The function passed in is also returned.  This can be useful for
+// clean-up code that should be run whether the test run is interrupted
+// or not:
+//
+//      defer tutl.AtInterrupt(cleanup)()
+//
+func AtInterrupt(f func()) func() {
+	aiMu.Lock()
+	defer aiMu.Unlock()
+	atInterrupt = append(atInterrupt, f)
+	return f
 }
 
 
