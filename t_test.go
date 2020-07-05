@@ -210,8 +210,9 @@ func TestOutput(t *testing.T) {
 
 	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3 fail", t)
 	m.isOutput("2 of 3 not like out", t,
-		"No <db> in <good bye> for bye.",
-		"Not like /Bye/ in <good bye> for bye.")
+		"No <db>...",
+		"Not like /Bye/...",
+		"...in <good bye> for bye.")
 
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
 	m.isOutput("newlines out", t,
@@ -219,8 +220,9 @@ func TestOutput(t *testing.T) {
 
 	u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
 	m.isOutput("newlines out", t,
-		"\nNo  <high>\nin  <hi\n>\nfor like lf.",
-		"\nNot like /Hi/\nin <hi\n>\nfor like lf.")
+		"No <high>...",
+		"Not like /Hi/...",
+		"...in <hi\n> for like lf.")
 
 	s.SetLineWidth(0)
 	u.Is(false, s.Is(5, 2+2, "math joke"), "joke is false", t)

@@ -321,23 +321,27 @@ func (c Context) Like(
 	}
 
 	failed := 0
+	invalid := 0
 	lgot := strings.ToLower(sgot)
 	for _, m := range match {
 		if '*' == m[0] {
 			lwant := strings.ToLower(m[1:])
 			if !strings.Contains(lgot, lwant) {
 				failed++
-				t.Errorf("No <%s> in <%s> for %s.", m[1:], sgot, desc)
+				t.Errorf("No <%s>...", m[1:])
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
-			failed++
-			t.Errorf("Invalid regexp (%s) in test code: %v\n", m, err)
+			invalid++
+			t.Errorf("Invalid regexp (%s) in test code: %v", m, err)
 		} else if "" == re.FindString(sgot) {
 			failed++
-			t.Errorf("Not like /%s/ in <%s> for %s.", m, sgot, desc)
+			t.Errorf("Not like /%s/...", m)
 		}
 	}
-	return failed
+	if 0 < failed {
+		t.Errorf("...in <%s> for %s.", sgot, desc)
+	}
+	return failed+invalid
 }
 
 
