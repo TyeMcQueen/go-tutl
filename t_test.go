@@ -3,6 +3,7 @@ package tutl_test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	u "github.com/TyeMcQueen/go-tutl"
@@ -133,10 +134,13 @@ func (m *mock) Logf(format string, args ...interface{}) {
 	m.output = append(m.output, fmt.Sprintf(format, args...))
 }
 
-func (m *mock) isOutput(desc string, t *testing.T, os ...string) {
+func (m *mock) isOutput(desc string, t *testing.T, want ...string) {
 	t.Helper()
-	if u.Is(len(os), len(m.output), desc, t) {
-		for i, o := range os {
+	if u.Is(len(want), len(m.output), desc, t) {
+		for i, o := range want {
+			if strings.HasSuffix(m.output[i], "\n") {
+				m.output[i] = m.output[i][:len(m.output[i])-1]
+			}
 			u.Is(o, m.output[i], u.S(desc, " ", i), t)
 		}
 	} else {
@@ -161,19 +165,18 @@ func TestOutput(t *testing.T) {
 	s := u.New(m)   // Simulated tester
 
 	u.Is(false, s.Is(true, false, "anti-tautology"), "Is false", t)
-	m.isOutput("simple out", t, "Got false not true for anti-tautology.\n")
+	m.isOutput("simple out", t, "Got false not true for anti-tautology.")
 
-	//u.Is("longish stuff", "longer stuff", "were stuff longer or longish", t)
 	s.Is("longish stuff", "longer stuff", "were stuff longer or longish")
 	m.isOutput("longish out", t,
 		"\n" + `Got "longer stuff" not "longish stuff" for ` +
-		`were stuff longer or longish.` + "\n")
+		`were stuff longer or longish.`)
 
 	s.Is("longish stuff", "longer stuffy", "were stuff longer or longish")
 	m.isOutput("longer out", t,
 		"\nGot \"longer stuffy\"" +
 		"\nnot \"longish stuff\"" +
-		"\nfor were stuff longer or longish.\n")
+		"\nfor were stuff longer or longish.")
 
 	u.Is(1, s.Like("", "description"), "1 failure if like no strings", t)
 	m.likeOutput("like no strings", t,
@@ -205,43 +208,43 @@ func TestOutput(t *testing.T) {
 		m.clear()
 	}
 
-	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3", t)
+	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3 fail", t)
 	m.isOutput("2 of 3 not like out", t,
-		"No <db> in <good bye> for bye.\n",
-		"Not like /Bye/ in <good bye> for bye.\n")
+		"No <db> in <good bye> for bye.",
+		"Not like /Bye/ in <good bye> for bye.")
 
 	long := "not really long"
 	u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
 	m.isOutput("1 of 2 long out", t,
-		"\nNot like /Really/ in <" + long + "> for longish like.\n",
-		"No <strong> in <" + long + "> for longish like.\n")
+		"\nNot like /Really/ in <" + long + "> for longish like.",
+		"No <strong> in <" + long + "> for longish like.")
 
 	long = "longer but not super long"
 	// u.Like(long, "longish like", t, "Really", "*strong")
 	u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
 	m.isOutput("1 of 2 long out", t,
-		"\nNot like /Really/ in <" + long + "> for longish like.\n",
-		"\nNo <strong> in <" + long + "> for longish like.\n")
+		"\nNot like /Really/ in <" + long + "> for longish like.",
+		"\nNo <strong> in <" + long + "> for longish like.")
 
 	long = "This string is pretty long, requiring extra newlines. Thanks!"
 	u.Is(1, s.Like(long, "long like", "*strong", "Thanks"), "1 of 2 long", t)
 	m.likeOutput("1 of 2 long out", t,
-		"\nNo  <strong>\n", "\nin  <" + long + ">\n", "\nfor long like.\n")
+		"\nNo  <strong>", "\nin  <" + long + ">", "\nfor long like.")
 
 	u.Is(1, s.Like(long, "long like2", "*string", "thanks"), "1 of 2nd long", t)
 	m.likeOutput("1 of 2 long out", t,
-		"\nNot like /thanks/\n", "\nin <" + long + ">\n", "\nfor long like2.\n")
+		"\nNot like /thanks/", "\nin <" + long + ">", "\nfor long like2.")
 
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
 	m.isOutput("newlines out", t,
-		"\nGot \"high\n\"\nnot \"hi\n\"\nfor newlines.\n")
+		"\nGot \"high\n\"\nnot \"hi\n\"\nfor newlines.")
 
 	u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
 	m.isOutput("newlines out", t,
-		"\nNo  <high>\nin  <hi\n>\nfor like lf.\n",
-		"\nNot like /Hi/\nin <hi\n>\nfor like lf.\n")
+		"\nNo  <high>\nin  <hi\n>\nfor like lf.",
+		"\nNot like /Hi/\nin <hi\n>\nfor like lf.")
 
 	s.SetLineWidth(0)
 	u.Is(false, s.Is(5, 2+2, "math joke"), "joke is false", t)
-	m.isOutput("joke out", t, "\nGot 4\nnot 5\nfor math joke.\n")
+	m.isOutput("joke out", t, "\nGot 4\nnot 5\nfor math joke.")
 }
