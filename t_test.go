@@ -140,7 +140,7 @@ func (m *mock) Logf(format string, args ...interface{}) {
 
 func (m *mock) isOutput(desc string, t *testing.T, want ...string) {
 	t.Helper()
-	if u.Is(len(want), len(m.output), desc, t) {
+	if u.Is(len(want), len(m.output), desc + " count", t) {
 		for i, o := range want {
 			if strings.HasSuffix(m.output[i], "\n") {
 				m.output[i] = m.output[i][:len(m.output[i])-1]
@@ -210,6 +210,15 @@ func TestOutput(t *testing.T) {
 	if !u.Is(0, len(m.output), "no output for success", t) {
 		t.Log("Surprise output:\n", m.output)
 		m.clear()
+	}
+
+	for _, short := range([]string{"", "!"}) {
+		u.Is(1, s.Like("Too short", "short", short), `just "` + short + `"`, t)
+		m.likeOutput(`just "` + short + `" output`, t,
+			"[Mm]atch strings passed to Like[(][)]",
+			"*must not be empty",
+			`*nor "!"`,
+		)
 	}
 
 	u.Is(0, s.Like("Success\n", "success", "*success", "!*error", "!!"),

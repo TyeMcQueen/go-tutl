@@ -333,6 +333,10 @@ func (c Context) Like(
 	invalid := 0
 	lgot := strings.ToLower(sgot)
 	for _, m := range match {
+		if "" == m || "!" == m {
+			t.Error(`Match strings passed to Like() must not be empty nor "!"`)
+			return len(match)
+		}
 		negate := false
 		if '!' == m[0] {
 			m = m[1:]
