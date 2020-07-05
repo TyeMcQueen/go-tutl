@@ -29,19 +29,20 @@ func die(format string, args ...interface{}) {
 //
 //      import(
 //          "os"
+//          "github.com/TyeMcQueen/go-tutl"
 //          "github.com/TyeMcQueen/go-tutl/profile"
 //      )
 //
 //      func main() {
 //          // ...
 //          if path := os.Getenv("CPU_PROFILE"); "" != path {
+//              go tutl.ShowStackTraceOnInterrupt(false)
 //              defer profile.ProfieCPU(path)()
 //          }
 //          // ...
 //      }
 //
-// If you call tutl.ShowStackOnInterrupt() in your test code (or load
-// github.com/TyeMcQueen/go-tutl/hang), then the CPU profile data will be
+// The call to ShowStackOnInterrupt() ensures the CPU profile data will be
 // properly flushed even if you interrupt (SIGINT, Ctrl-C) your test run.
 //
 func ProfileCPU(file string) func() {
@@ -69,13 +70,13 @@ func ProfileCPU(file string) func() {
 //      func main() {
 //          // ...
 //          if path := os.Getenv("BLOCK_PROFILE"); "" != path {
+//              go tutl.ShowStackTraceOnInterrupt(false)
 //              defer profile.ProfieBlockings(path)()
 //          }
 //          // ...
 //      }
 //
-// If you call tutl.ShowStackOnInterrupt() in your test code (or load
-// github.com/TyeMcQueen/go-tutl/hang), then the blocking profile data
+// The call to ShowStackOnInterrupt() ensures the blocking profile data
 // will be saved even if you interrupt (SIGINT, Ctrl-C) your test run.
 //
 func ProfileBlockings(file string) func() {

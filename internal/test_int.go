@@ -21,6 +21,7 @@ func note(s string) {
 
 func main() {
 	go u.ShowStackOnInterrupt()
+	go u.ShowStackOnInterrupt(false)
 	fmt.Println("Loaded,,,")
 	c := 0
 	u.AtInterrupt(func() {

@@ -374,10 +374,12 @@ func (c Context) Like(
 
 var atInterrupt = make([]func(), 0, 16)
 var aiMu sync.Mutex
+var running = 0
+var skip = true
 
 // If you have a TestMain() function, then you can add
 //
-//      go u.ShowStackOnInterrupt()
+//      go tutl.ShowStackOnInterrupt()
 //
 // to it to allow you to interrupt it (such as via typing Ctrl-C) in order
 // to see stack traces of everything that is running.  This is particularly
@@ -387,7 +389,20 @@ var aiMu sync.Mutex
 //
 // ShowStackOnInterrupt() can also be used from non-test programs.
 //
-func ShowStackOnInterrupt() {
+// ShowStackOnInterrupt(false) has a special meaning; see AtInterrupt().
+//
+func ShowStackOnInterrupt(show ...bool) {
+	aiMu.Lock()
+	if 0 == len(show) || show[0] {
+		skip = false
+	}
+	if 0 < running {
+		aiMu.Unlock()
+		return
+	}
+	running++
+	aiMu.Unlock()
+
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT)
 	_ = <-sig
@@ -405,6 +420,10 @@ func ShowStackOnInterrupt() {
 		ai()
 	}
 
+	if skip {
+		fmt.Fprintln(os.Stderr, "Interrupted.")
+		os.Exit(1)
+	}
 	debug.SetTraceback("all")
 	panic("Interrupted")
 }
@@ -420,6 +439,17 @@ func ShowStackOnInterrupt() {
 // or not:
 //
 //      defer tutl.AtInterrupt(cleanup)()
+//
+// If you want to empower AtInterrupt() even if ShowStackOnInterrupt() has
+// not been enabled, then your code can call:
+//
+//      go tutl.ShowStackOnInterrupt(false)
+//
+// This does nothing if ShowStackOnInterrupt() had already been called
+// (in particular, it does not disable the showing of stack traces).
+// Otherwise, it does the work that it would normally do except, if a
+// SIGINT is received, it will only run any functions registered via
+// AtInterrupt() but will not show stack traces.
 //
 func AtInterrupt(f func()) func() {
 	aiMu.Lock()
