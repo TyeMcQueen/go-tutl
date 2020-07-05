@@ -6,9 +6,17 @@ Include:
 		_ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
 	)
 
-in just one of your *_test.go files so that you can interrupt (such as
-via typing Ctrl-C) an infinite loop or otherwise hanging test run and be
-shown, in response, the stack traces of everything that is running.
+in just one of your *_test.go files (per module) so that you can interrupt
+(such as via typing Ctrl-C) an infinite loop or otherwise hanging test run
+and be shown, in response, the stack traces of everything that is running.
+
+If you have your own TestMain() function, then just call:
+
+	go tutl.ShowStackOnInterrupt()
+
+from it rather than loading this module (which would fail).
+
+Note that loading this module does nothing useful in non-test code.
 
 */
 package hang
