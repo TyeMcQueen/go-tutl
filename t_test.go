@@ -131,7 +131,11 @@ func (m *mock) Log(args ...interface{}) {
 	m.output = append(m.output, fmt.Sprintln(args...))
 }
 func (m *mock) Logf(format string, args ...interface{}) {
-	m.output = append(m.output, fmt.Sprintf(format, args...))
+	line := fmt.Sprintf(format, args...)
+	if ! strings.HasSuffix(line, "\n") {
+		line = line + "\n"
+	}
+	m.output = append(m.output, line)
 }
 
 func (m *mock) isOutput(desc string, t *testing.T, want ...string) {

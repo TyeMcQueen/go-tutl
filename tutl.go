@@ -240,7 +240,7 @@ func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
 	} else if wid <= c.LineWidth {
 		t.Error("\n" + line)
 	} else {
-		t.Errorf("\nGot %s\nnot %s\nfor %s.\n", c.S(got), c.S(want), desc)
+		t.Errorf("\nGot %s\nnot %s\nfor %s.", c.S(got), c.S(want), desc)
 	}
 	return false
 }
@@ -302,7 +302,7 @@ func (c Context) Like(
 ) int {
 	t.Helper()
 	if 0 == len(match) {
-		t.Errorf("Called Like() with too few arguments in test code\n")
+		t.Errorf("Called Like() with too few arguments in test code.")
 		return 1
 	}
 
@@ -316,7 +316,7 @@ func (c Context) Like(
 		empty = "blank"
 	}
 	if "" != empty {
-		t.Errorf("No string to check what it is Like(); got %s.\n", empty)
+		t.Errorf("No string to check what it is Like(); got %s.", empty)
 		return len(match)
 	}
 
