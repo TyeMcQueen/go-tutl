@@ -212,6 +212,22 @@ func TestOutput(t *testing.T) {
 		m.clear()
 	}
 
+	u.Is(0, s.Like("Success\n", "success", "*success", "!*error", "!!"),
+		"negated", t)
+	if !u.Is(0, len(m.output), "no output for success 2", t) {
+		t.Log("Surprise output:\n", m.output)
+		m.clear()
+	}
+
+	u.Is(3, s.Like("Failed!\nError: ...\n", "success",
+		"*success", "!*error", "!!"), "negated failure", t)
+	m.isOutput("negated failure output", t,
+		"No <success>...",
+		"Found unwanted <error>...",
+		"Like unwanted /!/...",
+		"...in <Failed!\nError: ...\n> for success.",
+	)
+
 	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3 fail", t)
 	m.isOutput("2 of 3 not like out", t,
 		"No <db>...",

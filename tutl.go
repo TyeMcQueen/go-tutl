@@ -207,14 +207,16 @@ func (c Context) S(vs ...interface{}) string {
 
 // Is() tests that the first two arguments are converted to the same string
 // by V().  If they are not, then a diagnostic is displayed which also causes
-// the unit test to fail.  The diagnostic is similar to
-// "Got {got} not {want} for {desc}.\n" except that it will be split onto
-// multiple lines if the values involved are long enough and S() is used
-// for 'got' and 'want' so control characters will be escaped and their values
-// may be in quotes.
+// the unit test to fail.
+//
+// The diagnostic is similar to "Got {got} not {want} for {desc}.\n" except
+// that; 1) S() is used for 'got' and 'want' so control characters will be
+// escaped and their values may be in quotes and 2) it will be split onto
+// multiple lines if the values involved are long enough.
 //
 // Is() returns whether the test passed, which is useful for skipping tests
-// that would make no sense to run given a prior failure.
+// that would make no sense to run given a prior failure or to display extra
+// debug information only when a test fails.
 //
 func Is(want, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
@@ -279,12 +281,19 @@ func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 // multiple tests against a single value.  Each test checks that the value
 // converts into a string that either contains a specific sub-string (ignoring
 // letter case) or that it matches a regular expression.  You must pass
-// at least one string to be matched.  Strings that start with "*" have the
-// "*" stripped before a substring match is performed (ignoring letter case).
-// If a string does not start with a "*", then it must be a valid regular
-// expression that will be matched against the value's string representation.
+// at least one string to be matched.
 //
-// Like() returns the number matches that failed.
+// Strings that start with "*" have the "*" stripped before a substring match
+// is performed (ignoring letter case).  If a string does not start with a
+// "*", then it must be a valid regular expression that will be matched
+// against the value's string representation.
+//
+// Except that strings that start with "!" have that stripped before checking
+// for a subsequent "*".  The "!" negates the match so that the test will only
+// pass if the string does not match.  To specify a regular expression that
+// starts with a "!" character, simply escape it as `\!` or "[!]".
+//
+// Like() returns the number of matches that failed.
 //
 // If 'got' is nil, the empty string, or becomes the empty string, then no
 // comparisons are done and a single failure is reported (but the number
@@ -324,18 +333,31 @@ func (c Context) Like(
 	invalid := 0
 	lgot := strings.ToLower(sgot)
 	for _, m := range match {
+		negate := false
+		if '!' == m[0] {
+			m = m[1:]
+			negate = true
+		}
 		if '*' == m[0] {
 			lwant := strings.ToLower(m[1:])
-			if !strings.Contains(lgot, lwant) {
+			if negate == strings.Contains(lgot, lwant) {
 				failed++
-				t.Errorf("No <%s>...", m[1:])
+				if negate {
+					t.Errorf("Found unwanted <%s>...", m[1:])
+				} else {
+					t.Errorf("No <%s>...", m[1:])
+				}
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
 			invalid++
 			t.Errorf("Invalid regexp (%s) in test code: %v", m, err)
-		} else if "" == re.FindString(sgot) {
+		} else if negate == ( "" != re.FindString(sgot) ) {
 			failed++
-			t.Errorf("Not like /%s/...", m)
+			if negate {
+				t.Errorf("Like unwanted /%s/...", m)
+			} else {
+				t.Errorf("Not like /%s/...", m)
+			}
 		}
 	}
 	if 0 < failed {
