@@ -213,28 +213,6 @@ func TestOutput(t *testing.T) {
 		"No <db> in <good bye> for bye.",
 		"Not like /Bye/ in <good bye> for bye.")
 
-	long := "not really long"
-	u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
-	m.isOutput("1 of 2 long out", t,
-		"\nNot like /Really/ in <" + long + "> for longish like.",
-		"No <strong> in <" + long + "> for longish like.")
-
-	long = "longer but not super long"
-	// u.Like(long, "longish like", t, "Really", "*strong")
-	u.Is(2, s.Like(long, "longish like", "Really", "*strong"), "longish", t)
-	m.isOutput("1 of 2 long out", t,
-		"\nNot like /Really/ in <" + long + "> for longish like.",
-		"\nNo <strong> in <" + long + "> for longish like.")
-
-	long = "This string is pretty long, requiring extra newlines. Thanks!"
-	u.Is(1, s.Like(long, "long like", "*strong", "Thanks"), "1 of 2 long", t)
-	m.likeOutput("1 of 2 long out", t,
-		"\nNo  <strong>", "\nin  <" + long + ">", "\nfor long like.")
-
-	u.Is(1, s.Like(long, "long like2", "*string", "thanks"), "1 of 2nd long", t)
-	m.likeOutput("1 of 2 long out", t,
-		"\nNot like /thanks/", "\nin <" + long + ">", "\nfor long like2.")
-
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
 	m.isOutput("newlines out", t,
 		"\nGot \"high\n\"\nnot \"hi\n\"\nfor newlines.")

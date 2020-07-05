@@ -327,38 +327,14 @@ func (c Context) Like(
 			lwant := strings.ToLower(m[1:])
 			if !strings.Contains(lgot, lwant) {
 				failed++
-				line := fmt.Sprintf(
-					"No <%s> in <%s> for %s.", m[1:], sgot, desc)
-				wid := utf8.RuneCount([]byte(line))
-				if strings.Contains(line, "\n") {
-					wid = 1 + c.LineWidth
-				}
-				if wid <= c.LineWidth-20 {
-					t.Error(line)
-				} else if wid <= c.LineWidth {
-					t.Error("\n" + line)
-				} else {
-					t.Errorf("\nNo  <%s>\nin  <%s>\nfor %s.\n",
-						m[1:], sgot, desc)
-				}
+				t.Errorf("No <%s> in <%s> for %s.", m[1:], sgot, desc)
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
 			failed++
 			t.Errorf("Invalid regexp (%s) in test code: %v\n", m, err)
 		} else if "" == re.FindString(sgot) {
 			failed++
-			line := fmt.Sprintf("Not like /%s/ in <%s> for %s.", m, sgot, desc)
-			wid := utf8.RuneCount([]byte(line))
-			if strings.Contains(line, "\n") {
-				wid = 1 + c.LineWidth
-			}
-			if wid <= c.LineWidth-20 {
-				t.Error(line)
-			} else if wid <= c.LineWidth {
-				t.Error("\n" + line)
-			} else {
-				t.Errorf("\nNot like /%s/\nin <%s>\nfor %s.\n", m, sgot, desc)
-			}
+			t.Errorf("Not like /%s/ in <%s> for %s.", m, sgot, desc)
 		}
 	}
 	return failed
