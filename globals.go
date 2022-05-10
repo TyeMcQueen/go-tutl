@@ -7,7 +7,7 @@ import (
 	"unicode/utf8"
 )
 
-type Context struct {
+type Options struct {
 	doNotEscape rune
 	LineWidth   int
 }
@@ -17,7 +17,7 @@ type Context struct {
 //
 //      tutl.Default = 120
 //
-var Default = Context{doNotEscape: '\n', LineWidth: 72}
+var Default = Options{doNotEscape: '\n', LineWidth: 72}
 
 // V() just converts a value to a string.  It is similar to
 // fmt.Sprintf("%v", v).  But it treats []byte values as strings.
@@ -46,11 +46,11 @@ func DoubleQuote(s string) string {
 //
 func EscapeNewline(b bool) { Default.EscapeNewline(b) }
 
-func (c *Context) EscapeNewline(b bool) {
+func (o *Options) EscapeNewline(b bool) {
 	if b {
-		c.doNotEscape = ' '
+		o.doNotEscape = ' '
 	} else {
-		c.doNotEscape = '\n'
+		o.doNotEscape = '\n'
 	}
 }
 
@@ -118,7 +118,7 @@ func S(vs ...interface{}) string {
 	return Default.S(vs...)
 }
 
-func (c Context) S(vs ...interface{}) string {
+func (o Options) S(vs ...interface{}) string {
 	ss := make([]string, len(vs))
 	for j, i := range vs {
 		s := ""
@@ -142,7 +142,7 @@ func (c Context) S(vs ...interface{}) string {
 		for i, r := range s {
 			if 0xFFFD == r {
 				buf = append(buf, []byte(fmt.Sprintf("\\x%02X", s[i]))...)
-			} else if r < 32 && r != c.doNotEscape || 0x7f <= r {
+			} else if r < 32 && r != o.doNotEscape || 0x7f <= r {
 				buf = append(buf, []byte(Escape(r))...)
 			} else {
 				buf = append(buf, byte(r))
@@ -171,7 +171,7 @@ func Is(want, got interface{}, desc string, t TestingT) bool {
 	return Default.Is(want, got, desc, t)
 }
 
-func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
+func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
 	vwant := V(want)
 	vgot := V(got)
@@ -179,17 +179,17 @@ func (c Context) Is(want, got interface{}, desc string, t TestingT) bool {
 	//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
 		return true
 	}
-	line := "Got " + c.S(got) + " not " + c.S(want) + " for " + desc + "."
+	line := "Got " + o.S(got) + " not " + o.S(want) + " for " + desc + "."
 	wid := utf8.RuneCount([]byte(line))
 	if strings.Contains(line, "\n") {
-		wid = 1 + c.LineWidth
+		wid = 1 + o.LineWidth
 	}
-	if wid <= c.LineWidth-20 {
+	if wid <= o.LineWidth-20 {
 		t.Error(line)
-	} else if wid <= c.LineWidth {
+	} else if wid <= o.LineWidth {
 		t.Error("\n" + line)
 	} else {
-		t.Errorf("\nGot %s\nnot %s\nfor %s.", c.S(got), c.S(want), desc)
+		t.Errorf("\nGot %s\nnot %s\nfor %s.", o.S(got), o.S(want), desc)
 	}
 	return false
 }
@@ -208,7 +208,7 @@ func IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	return Default.IsNot(hate, got, desc, t)
 }
 
-func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
+func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
 	vhate := V(hate)
 	vgot := V(got)
@@ -216,7 +216,7 @@ func (c Context) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
 		return true
 	}
-	line := "Got unwanted " + c.S(got) + " for " + desc + "."
+	line := "Got unwanted " + o.S(got) + " for " + desc + "."
 	t.Error(line)
 	return false
 }
@@ -249,7 +249,7 @@ func Like(got interface{}, desc string, t TestingT, match ...string) int {
 	return Default.Like(got, desc, t, match...)
 }
 
-func (c Context) Like(
+func (o Options) Like(
 	got interface{}, desc string, t TestingT, match ...string,
 ) int {
 	t.Helper()

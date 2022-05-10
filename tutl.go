@@ -43,7 +43,7 @@ type TestingT interface {
 // A type to allow an alternate calling style, especially for Is() and Like().
 type TUTL struct {
 	TestingT
-	c Context
+	o Options
 }
 
 // A unit test can have a huge number of calls to Is().  Having to remember
@@ -89,7 +89,7 @@ func New(t TestingT) TUTL { return TUTL{t, Default} }
 //
 func (u TUTL) Is(want, got interface{}, desc string) bool {
 	u.Helper()
-	return u.c.Is(want, got, desc, u)
+	return u.o.Is(want, got, desc, u)
 }
 
 // Same as the non-method IsNot() except the *testing.T argument is held in
@@ -97,7 +97,7 @@ func (u TUTL) Is(want, got interface{}, desc string) bool {
 //
 func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 	u.Helper()
-	return u.c.IsNot(hate, got, desc, u)
+	return u.o.IsNot(hate, got, desc, u)
 }
 
 // Same as the non-method Like() except the *testing.T argument is held in
@@ -105,27 +105,27 @@ func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 //
 func (u TUTL) Like(got interface{}, desc string, match ...string) int {
 	u.Helper()
-	return u.c.Like(got, desc, u, match...)
+	return u.o.Like(got, desc, u, match...)
 }
 
 // New() copies the EscapeNewline() state from the Default Conext but future
-// calls to EscapeNewline() only impact one Context, not any other copies.
+// calls to EscapeNewline() only impact one Options, not any other copies.
 //
-func (u *TUTL) EscapeNewline(b bool) { u.c.EscapeNewline(b) }
+func (u *TUTL) EscapeNewline(b bool) { u.o.EscapeNewline(b) }
 
 // Same as the non-method S() except that it honors the state from the
 // method version of EscapeNewline() [called on the same object].  New()
 // copies the EscapeNewline() state from the Default Conext but future
-// calls to EscapeNewline() only impact one Context, not any other copies.
+// calls to EscapeNewline() only impact one Options, not any other copies.
 //
-func (u TUTL) S(vs ...interface{}) string { return u.c.S(vs...) }
+func (u TUTL) S(vs ...interface{}) string { return u.o.S(vs...) }
 
 // Sets the maximum line width for single-line test failure output, measured
 // in UTF-8 runes.  If either of your values being compared would be displayed
 // with unescaped newlines, then single-line output will not be used.
 //
 func (u *TUTL) SetLineWidth(w int) {
-	u.c.LineWidth = w
+	u.o.LineWidth = w
 }
 
 func (u TUTL) V(v interface{}) string       { return V(v) }

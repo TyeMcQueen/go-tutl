@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestContext(t *testing.T) {
+func TestOptions(t *testing.T) {
 	o := u.New(t)
 
 	u.Is(u.S("hi"), o.S("hi"), "o.S", t)
