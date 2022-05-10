@@ -22,6 +22,7 @@ Note that loading this module does nothing useful in non-test code.
 package hang
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -32,5 +33,6 @@ import (
 // running.
 func TestMain(m *testing.M) {
 	go tutl.ShowStackOnInterrupt()
+	fmt.Fprintln(os.Stderr, "Will show stack traces on Ctrl-C.")
 	os.Exit(m.Run())
 }
