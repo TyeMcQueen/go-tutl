@@ -28,6 +28,9 @@ See also "go doc github.com/TyeMcQueen/go-tutl/hang".
 package tutl
 
 import (
+	"fmt"
+	"io"
+	"os"
 )
 
 // An interface covering the methods of *testing.T that TUTL uses.  This
@@ -39,6 +42,46 @@ type TestingT interface {
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 	Failed() bool
+}
+
+// A FakeTester is a replacement for a '*testing.T' so that you can use
+// TUTL's functionality outside of a real 'go test' run.
+//
+type FakeTester struct {
+	Output    io.Writer
+	HasFailed bool
+}
+
+// The 'tutl.StdoutTester' is a replacement for a '*testing.T' that just
+// writes output to 'os.Stdout'.
+//
+var StdoutTester = FakeTester{os.Stdout, false}
+
+func (out FakeTester) Helper() { }
+
+func (out FakeTester) Log(args ...interface{}) {
+	fmt.Fprintln(out.Output, args...)
+}
+
+func (out FakeTester) Logf(format string, args ...interface{}) {
+	if "" == format || '\n' != format[len(format)-1] {
+		format += "\n"
+	}
+	fmt.Fprintf(out.Output, format, args...)
+}
+
+func (out FakeTester) Error(args ...interface{}) {
+	out.Log(args...)
+	out.HasFailed = true
+}
+
+func (out FakeTester) Errorf(format string, args ...interface{}) {
+	out.Logf(format, args...)
+	out.HasFailed = true
+}
+
+func (out FakeTester) Failed() bool {
+	return out.HasFailed
 }
 
 // A type to allow an alternate calling style, especially for Is() and Like().
