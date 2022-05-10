@@ -251,15 +251,15 @@ func TestOutput(t *testing.T) {
 		"*success", "!*error", "!!"), "negated failure", t)
 	m.isOutput("negated failure output", t,
 		"No <success>...",
-		"Found unwanted <error>...",
-		"Like unwanted /!/...",
+		"and Found unwanted <error>...",
+		"and Like unwanted /!/...",
 		"In <Failed!\nError: ...\n> for success.",
 	)
 
 	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3 fail", t)
 	m.isOutput("2 of 3 not like out", t,
 		"No <db>...",
-		"Not like /Bye/...",
+		"and Not like /Bye/...",
 		"In <good bye> for bye.")
 
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
@@ -269,7 +269,7 @@ func TestOutput(t *testing.T) {
 	u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
 	m.isOutput("newlines out", t,
 		"No <high>...",
-		"Not like /Hi/...",
+		"and Not like /Hi/...",
 		"In <hi\n> for like lf.")
 
 	s.SetLineWidth(0)

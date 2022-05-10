@@ -432,6 +432,7 @@ func (o Options) Like(
 	failed := 0
 	invalid := 0
 	lgot := strings.ToLower(sgot)
+	and := ""
 	for _, m := range match {
 		if "" == m || "!" == m {
 			t.Error(`Match strings passed to Like() must not be empty nor "!"`)
@@ -448,21 +449,24 @@ func (o Options) Like(
 				failed++
 				sMatch := o.ReplaceNewlines(m[1:])
 				if negate {
-					t.Errorf("Found unwanted <%s>...", sMatch)
+					t.Errorf(and + "Found unwanted <%s>...", sMatch)
 				} else {
-					t.Errorf("No <%s>...", sMatch)
+					t.Errorf(and + "No <%s>...", sMatch)
 				}
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
 			invalid++
-			t.Errorf("Invalid regexp (%s) in test code: %v", m, err)
+			t.Errorf(and + "Invalid regexp (%s) in test code: %v", m, err)
 		} else if negate == ( "" != re.FindString(sgot) ) {
 			failed++
 			if negate {
-				t.Errorf("Like unwanted /%s/...", m)
+				t.Errorf(and + "Like unwanted /%s/...", m)
 			} else {
-				t.Errorf("Not like /%s/...", m)
+				t.Errorf(and + "Not like /%s/...", m)
 			}
+		}
+		if 0 < failed {
+			and = "and "
 		}
 	}
 	if 0 < failed {
