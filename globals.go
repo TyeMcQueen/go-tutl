@@ -343,6 +343,43 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	return false
 }
 
+// HasType() tests that the type of the 2nd argument ('got') is equal to the
+// first argument ('want', a string).  That is, it checks that
+// 'want == fmt.Sprintf("%T", got)'.  If not, then a diagnostic is displayed
+// which also causes the unit test to fail.
+//
+// The diagnostic is similar to "Got {got} not {want} for {desc}.\n" where
+// '{got}' is the data type of 'got' and '{want}' is just the 'want' string.
+//
+// If 'got' is an 'interface' type, then the type string will be the type of
+// the underlying object (or "nil").  If you actually wish to compare the
+// 'interface' type, then place '&' before 'got' and prepend "*" to 'want':
+//
+//      got := GetReader() // Returns io.Reader interface to an *os.File
+//      tutl.HasType("*os.File", got, "underlying type is *os.File", t)
+//      tutl.HasType("*io.Reader", &got, "interface type is io.Reader", t)
+//      //            ^            ^ insert these to test interface type
+//
+// HasType() returns whether the test passed, which is useful for skipping
+// tests that would make no sense to run given a prior failure.
+//
+func HasType(want string, got interface{}, desc string, t TestingT) bool {
+	t.Helper()
+	return Default.HasType(want, got, desc, t)
+}
+
+// See tutl.HasType() for documentation.
+func (o Options) HasType(
+	want string, got interface{}, desc string, t TestingT,
+) bool {
+	t.Helper()
+	tgot := "nil"
+	if nil != got {
+		tgot = fmt.Sprintf("%T", got)
+	}
+	return o.Is(want, tgot, desc, t)
+}
+
 // Circa() tests that the 2nd and 3rd arguments are approximately equal to
 // each other.  If they are not, then a diagnostic is displayed which also
 // causes the unit test to fail.

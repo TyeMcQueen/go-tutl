@@ -2,6 +2,7 @@ package tutl_test
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -193,6 +194,19 @@ func TestOutput(t *testing.T) {
 		"\n....lines\"" +
 		"\nfor multi-line.")
 
+	if h, err := os.Open("go.mod"); err != nil {
+		t.Error("Failed to read go.mod file: ", err)
+	} else {
+		got := io.Reader(h)
+		u.Is(true, s.HasType("*os.File", got, "underlying type"), "hastype", t)
+		u.Is(true, s.HasType("*io.Reader", &got, "interface type"), "hastype &", t)
+		got = nil
+		u.Is(true, s.HasType("nil", got, "nil type"), "hastype nil", t)
+		m.isOutput("hastype, no output", t)
+		u.Is(false, s.HasType("os.File", got, "not type"), "hastype fail", t)
+		m.isOutput("hastype output", t,
+			"Got \"nil\" not \"os.File\" for not type.")
+	}
 
 	s.Is(true, s.Circa(3, 1.23456, 1.234567, "circa"), "circa")
 	m.isOutput("circa, no output", t)

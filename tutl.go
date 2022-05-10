@@ -150,6 +150,14 @@ func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 	return u.o.IsNot(hate, got, desc, u)
 }
 
+// Same as the non-method tutl.HasType() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) HasType(want string, got interface{}, desc string) bool {
+	u.Helper()
+	return u.o.HasType(want, got, desc, u)
+}
+
 // Same as the non-method tutl.Circa() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
