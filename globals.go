@@ -148,9 +148,9 @@ func S(vs ...interface{}) string {
 // See tutl.S() for documentation.
 func (o Options) S(vs ...interface{}) string {
 	ss := make([]string, len(vs))
-	for j, i := range vs {
+	for j, ix := range vs {
 		s := ""
-		switch v := i.(type) {
+		switch v := ix.(type) {
 		case byte:
 			s = Char(v)
 		case error:
@@ -164,7 +164,7 @@ func (o Options) S(vs ...interface{}) string {
 				s = v
 			}
 		default:
-			s = fmt.Sprintf("%v", i)
+			s = fmt.Sprintf("%v", ix)
 		}
 		buf := make([]byte, 0, len(s))
 		for i, r := range s {
@@ -215,7 +215,7 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 		return true
 	}
 	line := "Got " + o.S(got) + " not " + o.S(want) + " for " + desc + "."
-	wid := utf8.RuneCount([]byte(line))
+	wid := utf8.RuneCountInString(line)
 	if strings.Contains(line, "\n") {
 		wid = 1 + o.LineWidth // Force multi-line output
 	}
