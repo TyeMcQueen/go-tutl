@@ -31,17 +31,50 @@ type Options struct {
 	// LineWidth influences when "Got {got} not {want} for {title}" output
 	// gets split onto multiple lines instead.  See Is() for details.
 	//
-	LineWidth   int
+	LineWidth int
+
+	// Digits32 specifies how many significant digits to use when comparing
+	// 'float32' values.  In particular, if a 'float32' or '[]float32' value
+	// is passed to V(), then no more than Digits32 significant digits are
+	// used in the resulting string.  Other data structures that contain
+	// 'float32' values are not impacted.
+	//
+	// If Digits32 is 0, then the default value of 5 is used.  If Digits32
+	// is negative or more than 7, then 'fmt.Sprint()' is used which may
+	// use even 8 digits for some values (such as 1/3) so that 2 'float32'
+	// values that are even very slightly different will produce different
+	// strings (a 'float32' is accurate to only slightly more than 7 digits).
+	//
+	Digits32 int
+
+	// Digits64 specifies how many significant digits to use when comparing
+	// 'float64' values.  In particular, if a 'float64' or '[]float64' value
+	// is passed to V(), then no more than Digits64 significant digits are
+	// used in the resulting string.  Other data structures that contain
+	// 'float64' values are not impacted.
+	//
+	// If Digits64 is 0, then the default value of 12 is used.  If Digits64
+	// is negative or more than 16, then 'fmt.Sprint()' is used which may
+	// use up to 16 digits so that 2 'float64' values that are even very
+	// slightly different will produce different strings (a 'float64' is
+	// accurate to only slightly less than 16 digits).
+	//
+	Digits64 int
 }
+
+const MaxDigits32 = 7
+const MaxDigits64 = 15
 
 // The 'tutl.Default' global contains the user preferences to be used unless
 // you make a copy and use it, such as via New() (see Options for more).
 //
 var Default = Options{
-	doNotEscape: '\n', LineWidth: 72}
+	doNotEscape: '\n', LineWidth: 72, Digits32: 5, Digits64: 12}
 
 // V() just converts a value to a string.  It is similar to 'fmt.Sprint(v)'.
-// But it treats '[]byte' values as 'string's.
+// But it treats '[]byte' values as 'string's.  It also (by default) uses
+// fewer significant digits when converting 'float32', 'float64',
+// '[]float32', and '[]float64' values (see Options for details).
 //
 func V(v interface{}) string {
 	return Default.V(v)
@@ -54,6 +87,34 @@ func (o Options) V(v interface{}) string {
 		return t
 	case []byte:
 		return string(t)
+	case float32:
+		d := o.Digits32
+		if 0 == d {
+			d = 5
+		} else if d < 0 || MaxDigits32 < d {
+			return fmt.Sprint(t)
+		}
+		return fmt.Sprintf("%.*g", d, t)
+	case float64:
+		d := o.Digits64
+		if 0 == d {
+			d = 12
+		} else if d < 0 || MaxDigits64 < d {
+			return fmt.Sprint(t)
+		}
+		return fmt.Sprintf("%.*g", d, t)
+	case []float32:
+		s := make([]string, len(t))
+		for i, f := range t {
+			s[i] = o.V(f)
+		}
+		return strings.Join(s, ",")
+	case []float64:
+		s := make([]string, len(t))
+		for i, f := range t {
+			s[i] = o.V(f)
+		}
+		return strings.Join(s, ",")
 	}
 	return fmt.Sprint(v)
 }
@@ -137,6 +198,9 @@ func Char(c byte) string {
 // If S() is passed a single argument that is a 'string', then it will put
 // double quotes around it and escape any contained " and \ characters.
 //
+// See V() for how 'float32', 'float64', '[]float32', or '[]float64' values
+// are converted.
+//
 // Note that S() does not put single quotes around 'rune' values as 'rune'
 // is just an alias for 'int32' so S('x') == S(int32('x')) == "120" while
 // S("x"[0]) == S(byte('x')) == S(uint8('x')) = "'x'".
@@ -163,6 +227,8 @@ func (o Options) S(vs ...interface{}) string {
 			} else {
 				s = v
 			}
+		case float32, float64, []float32, []float64:
+			s = o.V(ix)
 		default:
 			s = fmt.Sprintf("%v", ix)
 		}

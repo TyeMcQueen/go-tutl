@@ -190,6 +190,20 @@ func (u *TUTL) SetLineWidth(w int) {
 	u.o.LineWidth = w
 }
 
+// SetDigits32() is the same as setting the global 'tutl.Default.Digits32'
+// value, except it only changes the setting for the invoking TUTL object.
+//
+func (u TUTL) SetDigits32(d int) {
+	u.o.Digits32 = d
+}
+
+// SetDigits64() is the same as setting the global 'tutl.Default.Digits64'
+// value, except it only changes the setting for the invoking TUTL object.
+//
+func (u TUTL) SetDigits64(d int) {
+	u.o.Digits64 = d
+}
+
 // Identical to the non-method tutl.DoubleQuote().
 func (u TUTL) DoubleQuote(s string) string {
 	return DoubleQuote(s)

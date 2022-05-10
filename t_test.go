@@ -48,6 +48,11 @@ func TestS(t *testing.T) {
 	u.Is(10, rune('\n'), `rune '\n'`, t)
 	u.Is(120, 'x', `rune 'x' is number`, t)
 
+	u.Is("1.23456789012", u.V(1.234567890123456789), "V float64", t)
+	u.Is("0,1.23456789012", u.V([]float64{0,1.234567890123456789}), "V []float64", t)
+	u.Is("1.2346", u.V(float32(1.23456789)), "V float32", t)
+	u.Is("1.23456789012", u.S(1.234567890123456789), "S float64", t)
+
 	u.Is(`>"hi"`, u.S(">", []byte("hi")), `"hi" []byte`, t)
 	u.Is(`>"Oops"`, u.S(">", fmt.Errorf("Oops")), `"Oops" error`, t)
 	u.Is(`>str`, u.S(">", "str"), `not alone "str" string is not quoted`, t)
@@ -180,6 +185,14 @@ func TestOutput(t *testing.T) {
 		"\nGot \"longer stuffy\"" +
 		"\nnot \"longish stuff\"" +
 		"\nfor were stuff longer or longish.")
+
+
+	s.Is(true, s.Circa(3, 1.23456, 1.234567, "circa"), "circa")
+	m.isOutput("circa, no output", t)
+
+	s.Is(false, s.Circa(3, 1.23456, 1.2356, "circa"), "circa")
+	m.isOutput("circa, no output", t,
+		"Got 1.24 not 1.23 for circa.")
 
 	u.Is(1, s.Like("", "description"), "1 failure if like no strings", t)
 	m.likeOutput("like no strings", t,
