@@ -38,6 +38,7 @@ type TestingT interface {
 	Errorf(format string, args ...interface{})
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
+	Failed() bool
 }
 
 // A type to allow an alternate calling style, especially for Is() and Like().

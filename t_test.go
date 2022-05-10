@@ -112,7 +112,8 @@ type mock struct {
 	output []string
 }
 
-func (m *mock) Helper() { return }
+func (m *mock) Failed() bool { return false }
+func (m *mock) Helper() { }
 func (m *mock) clear()  { m.output = m.output[:0]; m.fails = 0 }
 
 func (m *mock) Error(args ...interface{}) {
