@@ -44,6 +44,11 @@ var Default = Options{
 // But it treats '[]byte' values as 'string's.
 //
 func V(v interface{}) string {
+	return Default.V(v)
+}
+
+// See tutl.V() for documentation.
+func (o Options) V(v interface{}) string {
 	switch t := v.(type) {
 	case string:
 		return t
@@ -203,8 +208,8 @@ func Is(want, got interface{}, desc string, t TestingT) bool {
 // See tutl.Is() for documentation.
 func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
-	vwant := V(want)
-	vgot := V(got)
+	vwant := o.V(want)
+	vgot := o.V(got)
 	if vwant == vgot {
 	//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
 		return true
@@ -241,8 +246,8 @@ func IsNot(hate, got interface{}, desc string, t TestingT) bool {
 // See tutl.IsNot() for documentation.
 func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
-	vhate := V(hate)
-	vgot := V(got)
+	vhate := o.V(hate)
+	vgot := o.V(got)
 	if vhate != vgot {
 	//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
 		return true
@@ -290,7 +295,7 @@ func (o Options) Like(
 		return 1
 	}
 
-	sgot := V(got)
+	sgot := o.V(got)
 	empty := ""
 	if nil == got {
 		empty = "nil"

@@ -163,6 +163,12 @@ func (u TUTL) Like(got interface{}, desc string, match ...string) int {
 //
 func (u TUTL) S(vs ...interface{}) string { return u.o.S(vs...) }
 
+// Same as the non-method tutl.V() except that it honors the option settings
+// of the invoking TUTL object, not of the tutl.Default global.
+//
+func (u TUTL) V(v interface{}) string {
+	return u.o.V(v)
+}
 
 // Same as the EscapeNewline() method on the 'tutl.Default' global,
 // except it only changes the setting for the invoking TUTL object.
@@ -174,11 +180,6 @@ func (u *TUTL) EscapeNewline(b bool) { u.o.EscapeNewline(b) }
 //
 func (u *TUTL) SetLineWidth(w int) {
 	u.o.LineWidth = w
-}
-
-// Identical to the non-method tutl.V().
-func (u TUTL) V(v interface{}) string {
-	return V(v)
 }
 
 // Identical to the non-method tutl.DoubleQuote().
