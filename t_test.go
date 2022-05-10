@@ -9,12 +9,10 @@ import (
 	u "github.com/TyeMcQueen/go-tutl"
 )
 
-
 func TestMain(m *testing.M) {
 	go u.ShowStackOnInterrupt()
 	os.Exit(m.Run())
 }
-
 
 func TestContext(t *testing.T) {
 	o := u.New(t)
@@ -37,7 +35,6 @@ func TestContext(t *testing.T) {
 	u.Is("\"\n\"", p.S("\n"), "p changed", t)
 	u.Is("\"\n\"", o.S("\n"), "o unchanged", t)
 }
-
 
 func TestS(t *testing.T) {
 	if u.V(true) == u.V(false) {
@@ -81,7 +78,6 @@ func TestS(t *testing.T) {
 	u.Is("\\xA0", u.S("\xA0", ""), "0xA0 binary string", t)
 }
 
-
 func TestRune(t *testing.T) {
 	u.Is(`' '`, u.Rune(32), "' ' rune", t)
 	u.Is(`'~'`, u.Rune('~'), "~ rune", t)
@@ -111,7 +107,6 @@ func TestRune(t *testing.T) {
 	u.Is(`'\xFE'`, u.Char('\xFE'), "0xFE byte", t)
 }
 
-
 type mock struct {
 	fails  int
 	output []string
@@ -119,17 +114,21 @@ type mock struct {
 
 func (m *mock) Helper() { return }
 func (m *mock) clear()  { m.output = m.output[:0]; m.fails = 0 }
+
 func (m *mock) Error(args ...interface{}) {
 	m.fails++
 	m.Log(args...)
 }
+
 func (m *mock) Errorf(format string, args ...interface{}) {
 	m.fails++
 	m.Logf(format, args...)
 }
+
 func (m *mock) Log(args ...interface{}) {
 	m.output = append(m.output, fmt.Sprintln(args...))
 }
+
 func (m *mock) Logf(format string, args ...interface{}) {
 	line := fmt.Sprintf(format, args...)
 	if ! strings.HasSuffix(line, "\n") {
@@ -162,7 +161,6 @@ func (m *mock) likeOutput(desc string, t *testing.T, likes ...string) {
 	}
 	m.clear()
 }
-
 
 func TestOutput(t *testing.T) {
 	m := new(mock)  // Mock controller
