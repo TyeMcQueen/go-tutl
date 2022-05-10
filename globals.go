@@ -7,20 +7,41 @@ import (
 	"unicode/utf8"
 )
 
+// Options contains user preference options.  The 'tutl.Default' global
+// is the Options used unless you make a copy of it and use the copy.
+//
+// Calling tutl.New(t) associates such a copy with the returned object so
+// changes to preferences via the returned object don't modify 'Default'.
+//
+//      func TestFoo(t *testing.T) {
+//          u := tutl.New(t)
+//          u.SetLineWidth(120)
+//          u.Is(want, got(), "") // Uses 120-character line width.
+//          tutl.Is(want, got(), "", t) // Uses tutl.Default's line width.
+//      }
+//
+// You can modify some options directly via 'tutl.Default', such as:
+//
+//      tutl.Default.LineWidth = 120
+//
 type Options struct {
+	// Gets set to '\n' to NOT escape newlines (' ' to escape newlines).
 	doNotEscape rune
+
+	// LineWidth influences when "Got {got} not {want} for {title}" output
+	// gets split onto multiple lines instead.  See Is() for details.
+	//
 	LineWidth   int
 }
 
-// You can just directly set the maximum line width for single-line test
-// failure output [see also TUTL.SetLineWidth()] like:
+// The 'tutl.Default' global contains the user preferences to be used unless
+// you make a copy and use it, such as via New() (see Options for more).
 //
-//      tutl.Default = 120
-//
-var Default = Options{doNotEscape: '\n', LineWidth: 72}
+var Default = Options{
+	doNotEscape: '\n', LineWidth: 72}
 
-// V() just converts a value to a string.  It is similar to
-// fmt.Sprintf("%v", v).  But it treats []byte values as strings.
+// V() just converts a value to a string.  It is similar to 'fmt.Sprint(v)'.
+// But it treats '[]byte' values as 'string's.
 //
 func V(v interface{}) string {
 	switch t := v.(type) {
@@ -29,11 +50,11 @@ func V(v interface{}) string {
 	case []byte:
 		return string(t)
 	}
-	return fmt.Sprintf("%v", v)
+	return fmt.Sprint(v)
 }
 
-// Returns the string enclosed in double quotes and with contained \ and "
-// characters escaped.
+// DoubleQuote() returns the string enclosed in double quotes and with
+// contained \ and " characters escaped.
 //
 func DoubleQuote(s string) string {
 	s = strings.Replace(s, "\\", "\\\\", -1)
@@ -46,6 +67,7 @@ func DoubleQuote(s string) string {
 //
 func EscapeNewline(b bool) { Default.EscapeNewline(b) }
 
+// See tutl.EscapeNewline() for documentation.
 func (o *Options) EscapeNewline(b bool) {
 	if b {
 		o.doNotEscape = ' '
@@ -98,26 +120,27 @@ func Char(c byte) string {
 
 // S() returns a single string composed by converting each argument into
 // a string and concatenating all of those strings.  It is similar to but not
-// identical to fmt.Sprint().  S() never inserts spaces between your values
+// identical to 'fmt.Sprint()'.  S() never inserts spaces between your values
 // (if you want spaces, it is easy for you to add them).  S() puts single
-// quotes around byte values.  S() treats []byte values like strings.  S()
-// puts double quotes around []byte and error values (escaping enclosed "
-// and \ characters).
+// quotes around 'byte' (and 'uint8') values.  S() treats '[]byte' values
+// like 'string's.  S() puts double quotes around '[]byte' and 'error' values
+// (escaping enclosed " and \ characters).
 //
 // S() escapes control characters except for newlines [but see
 // EscapeNewline()].  S() also escapes non-UTF-8 byte sequences.
 //
-// If S() is passed a single argument that is a string, then it will put
+// If S() is passed a single argument that is a 'string', then it will put
 // double quotes around it and escape any contained " and \ characters.
 //
-// Note that S() does not put single quotes around rune values as "rune"
-// is just an alias for "int32" so S('x') == 'x' == 120 while
-// S("x"[0]) == "'x'".
+// Note that S() does not put single quotes around 'rune' values as 'rune'
+// is just an alias for 'int32' so S('x') == S(int32('x')) == "120" while
+// S("x"[0]) == S(byte('x')) == S(uint8('x')) = "'x'".
 //
 func S(vs ...interface{}) string {
 	return Default.S(vs...)
 }
 
+// See tutl.S() for documentation.
 func (o Options) S(vs ...interface{}) string {
 	ss := make([]string, len(vs))
 	for j, i := range vs {
@@ -162,6 +185,12 @@ func (o Options) S(vs ...interface{}) string {
 // escaped and their values may be in quotes and 2) it will be split onto
 // multiple lines if the values involved are long enough.
 //
+// Note that you pass 'want' before 'got' when calling Is() because the
+// 'want' value is often a simple constant while 'got' can be a complex
+// call and code is easier to read if you put shorter things first.  But
+// the output shows 'got' before 'want' as "Got X not Y" is the shortest
+// way to express that concept in English.
+//
 // Is() returns whether the test passed, which is useful for skipping tests
 // that would make no sense to run given a prior failure or to display extra
 // debug information only when a test fails.
@@ -171,6 +200,7 @@ func Is(want, got interface{}, desc string, t TestingT) bool {
 	return Default.Is(want, got, desc, t)
 }
 
+// See tutl.Is() for documentation.
 func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
 	vwant := V(want)
@@ -182,7 +212,7 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	line := "Got " + o.S(got) + " not " + o.S(want) + " for " + desc + "."
 	wid := utf8.RuneCount([]byte(line))
 	if strings.Contains(line, "\n") {
-		wid = 1 + o.LineWidth
+		wid = 1 + o.LineWidth // Force multi-line output
 	}
 	if wid <= o.LineWidth-20 {
 		t.Error(line)
@@ -195,19 +225,20 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 }
 
 // IsNot() tests that the first two arguments are converted to different
-// strings by V().  If they are not, then a diagnostic is displayed which also
-// causes the unit test to fail.  The diagnostic is similar to
+// strings by V().  If they are not, then a diagnostic is displayed which
+// also causes the unit test to fail.  The diagnostic is similar to
 // "Got unwanted {got} for {desc}.\n" except that S() is used for 'got' so
 // control characters will be escaped and their values may be in quotes.
 //
-// IsNot() returns whether the test passed, which is useful for skipping tests
-// that would make no sense to run given a prior failure.
+// IsNot() returns whether the test passed, which is useful for skipping
+// tests that would make no sense to run given a prior failure.
 //
 func IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
 	return Default.IsNot(hate, got, desc, t)
 }
 
+// See tutl.IsNot() for documentation.
 func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	t.Helper()
 	vhate := V(hate)
@@ -221,11 +252,11 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	return false
 }
 
-// Like() is most often used to test error messages.  It lets you perform
-// multiple tests against a single value.  Each test checks that the value
-// converts into a string that either contains a specific sub-string (ignoring
-// letter case) or that it matches a regular expression.  You must pass
-// at least one string to be matched.
+// Like() is most often used to test error messages (or other complex
+// strings).  It lets you perform multiple tests against a single value.
+// Each test checks that the value converts into a string that either
+// contains a specific sub-string (ignoring letter case) or that it matches
+// a regular expression.  You must pass at least one string to be matched.
 //
 // Strings that start with "*" have the "*" stripped before a substring match
 // is performed (ignoring letter case).  If a string does not start with a
@@ -233,22 +264,23 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 // against the value's string representation.
 //
 // Except that strings that start with "!" have that stripped before checking
-// for a subsequent "*".  The "!" negates the match so that the test will only
-// pass if the string does not match.  To specify a regular expression that
-// starts with a "!" character, simply escape it as `\!` or "[!]".
+// for a subsequent "*".  The "!" negates the match so that the test will
+// only pass if the string does not match.  To specify a regular expression
+// that starts with a "!" character, simply escape it as `\!` or "[!]".
 //
 // Like() returns the number of matches that failed.
 //
-// If 'got' is nil, the empty string, or becomes the empty string, then no
-// comparisons are done and a single failure is reported (but the number
-// returned is the number of match strings as it is assumed that none of them
-// would have matched the empty string).
+// If 'got' is 'nil', the empty string, or becomes the empty string, then
+// no comparisons are done and a single failure is reported (but the number
+// returned is the number of match strings as it is assumed that none of
+// them would have matched the empty string).
 //
 func Like(got interface{}, desc string, t TestingT, match ...string) int {
 	t.Helper()
 	return Default.Like(got, desc, t, match...)
 }
 
+// See tutl.Like() for documentation.
 func (o Options) Like(
 	got interface{}, desc string, t TestingT, match ...string,
 ) int {

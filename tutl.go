@@ -33,8 +33,9 @@ import (
 	"os"
 )
 
-// An interface covering the methods of *testing.T that TUTL uses.  This
-// makes it easier to test this test library.
+// TestingT is an interface covering the methods of '*testing.T' that TUTL
+// uses.  This makes it easier to test this test library.
+//
 type TestingT interface {
 	Helper()
 	Error(args ...interface{})
@@ -84,7 +85,9 @@ func (out FakeTester) Failed() bool {
 	return out.HasFailed
 }
 
-// A type to allow an alternate calling style, especially for Is() and Like().
+// TUTL is a type used to allow an alternate calling style, especially for
+// Is() and Like().
+//
 type TUTL struct {
 	TestingT
 	o Options
@@ -124,56 +127,76 @@ type TUTL struct {
 //
 // Whether to use an import alias or New() (or neither) is mostly a personal
 // preference.  Though, using New() also limits the scope of EscapeNewline()
-// MaxLineLine().
+// and other options.
+//
+// New() also copies the current settings from the global 'tutl.Default' into
+// the returned object.
 //
 func New(t TestingT) TUTL { return TUTL{t, Default} }
 
-// Same as the non-method Is() except the *testing.T argument is held in
-// the TUTL object and so does not need to be passed as an argument.
+// Same as the non-method tutl.Is() except the '*testing.T' argument is held
+// in the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) Is(want, got interface{}, desc string) bool {
 	u.Helper()
 	return u.o.Is(want, got, desc, u)
 }
 
-// Same as the non-method IsNot() except the *testing.T argument is held in
-// the TUTL object and so does not need to be passed as an argument.
+// Same as the non-method tutl.IsNot() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 	u.Helper()
 	return u.o.IsNot(hate, got, desc, u)
 }
 
-// Same as the non-method Like() except the *testing.T argument is held in
-// the TUTL object and so does not need to be passed as an argument.
+// Same as the non-method tutl.Like() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
 //
 func (u TUTL) Like(got interface{}, desc string, match ...string) int {
 	u.Helper()
 	return u.o.Like(got, desc, u, match...)
 }
 
-// New() copies the EscapeNewline() state from the Default Conext but future
-// calls to EscapeNewline() only impact one Options, not any other copies.
-//
-func (u *TUTL) EscapeNewline(b bool) { u.o.EscapeNewline(b) }
-
-// Same as the non-method S() except that it honors the state from the
-// method version of EscapeNewline() [called on the same object].  New()
-// copies the EscapeNewline() state from the Default Conext but future
-// calls to EscapeNewline() only impact one Options, not any other copies.
+// Same as the non-method tutl.S() except that it honors the option settings
+// of the invoking TUTL object, not of the 'tutl.Default' global.
 //
 func (u TUTL) S(vs ...interface{}) string { return u.o.S(vs...) }
 
-// Sets the maximum line width for single-line test failure output, measured
-// in UTF-8 runes.  If either of your values being compared would be displayed
-// with unescaped newlines, then single-line output will not be used.
+
+// Same as the EscapeNewline() method on the 'tutl.Default' global,
+// except it only changes the setting for the invoking TUTL object.
+//
+func (u *TUTL) EscapeNewline(b bool) { u.o.EscapeNewline(b) }
+
+// SetLineWidth() is the same as setting the global 'tutl.Default.LineWidth'
+// except it only changes the setting for the invoking TUTL object.
 //
 func (u *TUTL) SetLineWidth(w int) {
 	u.o.LineWidth = w
 }
 
-func (u TUTL) V(v interface{}) string       { return V(v) }
-func (u TUTL) DoubleQuote(s string) string  { return DoubleQuote(s) }
-func (u TUTL) Escape(r rune) string         { return Escape(r) }
-func (u TUTL) Rune(r rune) string           { return Rune(r) }
-func (u TUTL) Char(c byte) string           { return Char(c) }
+// Identical to the non-method tutl.V().
+func (u TUTL) V(v interface{}) string {
+	return V(v)
+}
+
+// Identical to the non-method tutl.DoubleQuote().
+func (u TUTL) DoubleQuote(s string) string {
+	return DoubleQuote(s)
+}
+
+// Identical to the non-method tutl.Escape().
+func (u TUTL) Escape(r rune) string {
+	return Escape(r)
+}
+
+// Identical to the non-method tutl.Rune().
+func (u TUTL) Rune(r rune) string {
+	return Rune(r)
+}
+
+// Identical to the non-method tutl.Char().
+func (u TUTL) Char(c byte) string {
+	return Char(c)
+}

@@ -22,7 +22,7 @@ func TestOptions(t *testing.T) {
 	o.Is(u.DoubleQuote("hi"), o.DoubleQuote("hi"), "o.DoubleQuote")
 	o.Is(o.Escape('\t'), u.Escape('\t'), "o.Escape")
 	o.Is(o.Rune('\r'), u.Rune('\r'), "o.Rune")
-	o.Is(o.Char('\n'), u.Char('\n'), "o.Rune")
+	o.Is(o.Char('\n'), u.Char('\n'), "o.Char")
 
 	u.EscapeNewline(true)
 	defer u.EscapeNewline(false)
