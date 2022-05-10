@@ -128,6 +128,21 @@ func DoubleQuote(s string) string {
 	return fmt.Sprintf("\"%s\"", s)
 }
 
+// ReplaceNewlines() returns a string with each newline replaced with either
+// an escaped newline (a \ then an 'n') or with the string "\n...." (so that
+// subsequent lines of a multi-line value are indented to make them easier
+// to distinguish from subsequent lines of a test diagnostic).
+//
+func ReplaceNewlines(s string) string { return Default.ReplaceNewlines(s) }
+
+// See tutl.ReplaceNewlines() for documentation.
+func (o *Options) ReplaceNewlines(s string) string {
+	if '\n' == o.doNotEscape {
+		return strings.Replace(s, "\n", "\n....", -1)
+	}
+	return strings.Replace(s, "\n", "\\n", -1)
+}
+
 // After calling EscapeNewline(true), S() will escape '\n' characters.  You
 // can call EscapeNewline(false) to restore the default behavior.
 //
@@ -280,17 +295,22 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
 		return true
 	}
-	line := "Got " + o.S(got) + " not " + o.S(want) + " for " + desc + "."
+	sGot := o.S(got)
+	sWant := o.S(want)
+	line := "Got " + sGot + " not " + sWant + " for " + desc + "."
 	wid := utf8.RuneCountInString(line)
 	if strings.Contains(line, "\n") {
-		wid = 1 + o.LineWidth // Force multi-line output
+		sGot = o.ReplaceNewlines(sGot)
+		sWant = o.ReplaceNewlines(sWant)
+		t.Errorf("\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+		return false
 	}
 	if wid <= o.LineWidth-20 {
 		t.Error(line)
 	} else if wid <= o.LineWidth {
 		t.Error("\n" + line)
 	} else {
-		t.Errorf("\nGot %s\nnot %s\nfor %s.", o.S(got), o.S(want), desc)
+		t.Errorf("\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
 	}
 	return false
 }
@@ -318,8 +338,8 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
 		return true
 	}
-	line := "Got unwanted " + o.S(got) + " for " + desc + "."
-	t.Error(line)
+	t.Error(
+		"Got unwanted " + o.ReplaceNewlines(o.S(got)) + " for " + desc + ".")
 	return false
 }
 
@@ -426,10 +446,11 @@ func (o Options) Like(
 			lwant := strings.ToLower(m[1:])
 			if negate == strings.Contains(lgot, lwant) {
 				failed++
+				sMatch := o.ReplaceNewlines(m[1:])
 				if negate {
-					t.Errorf("Found unwanted <%s>...", m[1:])
+					t.Errorf("Found unwanted <%s>...", sMatch)
 				} else {
-					t.Errorf("No <%s>...", m[1:])
+					t.Errorf("No <%s>...", sMatch)
 				}
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
@@ -445,7 +466,7 @@ func (o Options) Like(
 		}
 	}
 	if 0 < failed {
-		t.Errorf("...in <%s> for %s.", sgot, desc)
+		t.Errorf("In <%s> for %s.", sgot, desc)
 	}
 	return failed+invalid
 }

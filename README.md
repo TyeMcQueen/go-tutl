@@ -42,7 +42,7 @@ Sample output from a failing run of the above tests:
     dur_test.go:17:
         Not like /(Unknown|Invalid) unit/...
         No <fortnight>...
-        ...in <"Bad unit (ortnight) in duration.
+        In <"Bad unit (ortnight) in duration.
         "> for Error from '3 fortnight'.
 
 It also provides a special module to deal with infinite loops in your

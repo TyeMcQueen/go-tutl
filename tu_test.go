@@ -186,6 +186,13 @@ func TestOutput(t *testing.T) {
 		"\nnot \"longish stuff\"" +
 		"\nfor were stuff longer or longish.")
 
+	s.Is("two\nlines", "one line", "multi-line")
+	m.isOutput("longer out", t,
+		"\nGot \"one line\"" +
+		"\nnot \"two" +
+		"\n....lines\"" +
+		"\nfor multi-line.")
+
 
 	s.Is(true, s.Circa(3, 1.23456, 1.234567, "circa"), "circa")
 	m.isOutput("circa, no output", t)
@@ -246,24 +253,24 @@ func TestOutput(t *testing.T) {
 		"No <success>...",
 		"Found unwanted <error>...",
 		"Like unwanted /!/...",
-		"...in <Failed!\nError: ...\n> for success.",
+		"In <Failed!\nError: ...\n> for success.",
 	)
 
 	u.Is(2, s.Like("good bye", "bye", "o{2,}", "*db", "Bye"), "2 of 3 fail", t)
 	m.isOutput("2 of 3 not like out", t,
 		"No <db>...",
 		"Not like /Bye/...",
-		"...in <good bye> for bye.")
+		"In <good bye> for bye.")
 
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
 	m.isOutput("newlines out", t,
-		"\nGot \"high\n\"\nnot \"hi\n\"\nfor newlines.")
+		"\nGot \"high\n....\"\nnot \"hi\n....\"\nfor newlines.")
 
 	u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
 	m.isOutput("newlines out", t,
 		"No <high>...",
 		"Not like /Hi/...",
-		"...in <hi\n> for like lf.")
+		"In <hi\n> for like lf.")
 
 	s.SetLineWidth(0)
 	u.Is(false, s.Is(5, 2+2, "math joke"), "joke is false", t)

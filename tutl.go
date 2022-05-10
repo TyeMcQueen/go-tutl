@@ -178,6 +178,13 @@ func (u TUTL) V(v interface{}) string {
 	return u.o.V(v)
 }
 
+// Same as the ReplaceNewlines() method on the 'tutl.Default' global,
+// except it honors the settings from the invoking TUTL object.
+//
+func (u *TUTL) ReplaceNewlines(s string) string {
+	return u.o.ReplaceNewlines(s)
+}
+
 // Same as the EscapeNewline() method on the 'tutl.Default' global,
 // except it only changes the setting for the invoking TUTL object.
 //
