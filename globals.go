@@ -257,6 +257,40 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	return false
 }
 
+// Circa() tests that the 2nd and 3rd arguments are approximately equal to
+// each other.  If they are not, then a diagnostic is displayed which also
+// causes the unit test to fail.
+//
+// The diagnostic is similar to "Got {got} not {want} for {desc}.\n" where
+// 'want' and 'got' are shown formatted via 'fmt.Sprintf("%.*g", digits, v)'.
+// They are considered equal if that formatting produces the same string
+// for both values.  That is, 'want' and 'got' are considered roughly equal
+// if they are the same to 'digits' significant digits.  Passing 'digits' as
+// less than 1 or more than 15 is not useful.
+//
+// Circa() returns whether the test passed, which is useful for skipping
+// tests that would make no sense to run given a prior failure or to display
+// extra debug information only when a test fails.
+//
+func Circa(digits int, want, got float64, desc string, t TestingT) bool {
+	t.Helper()
+	return Default.Circa(digits, want, got, desc, t)
+}
+
+// See tutl.Circa() for documentation.
+func (o Options) Circa(
+	digits int, want, got float64, desc string, t TestingT,
+) bool {
+	t.Helper()
+	swant := fmt.Sprintf("%.*g", digits, want)
+	sgot := fmt.Sprintf("%.*g", digits, got)
+	if swant == sgot {
+		return true
+	}
+	t.Error("Got " + sgot + " not " + swant + " for " + desc + ".")
+	return false
+}
+
 // Like() is most often used to test error messages (or other complex
 // strings).  It lets you perform multiple tests against a single value.
 // Each test checks that the value converts into a string that either

@@ -150,6 +150,14 @@ func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 	return u.o.IsNot(hate, got, desc, u)
 }
 
+// Same as the non-method tutl.Circa() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) Circa(digits int, want, got float64, desc string) bool {
+	u.Helper()
+	return u.o.Circa(digits, want, got, desc, u)
+}
+
 // Same as the non-method tutl.Like() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
