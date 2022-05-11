@@ -2,12 +2,12 @@
 // profile data from your tests.
 package profile
 
-import(
+import (
 	"fmt"
 	"os"
-	"strings"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 
 	"github.com/TyeMcQueen/go-tutl"
 )

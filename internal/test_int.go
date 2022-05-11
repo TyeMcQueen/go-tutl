@@ -12,13 +12,11 @@ import (
 	u "github.com/TyeMcQueen/go-tutl"
 )
 
-
 func note(s string) {
 	u.AtInterrupt(func() {
 		fmt.Printf("AtInterrupt(%s)\n", s)
 	})
 }
-
 
 func main() {
 	go u.ShowStackOnInterrupt()
@@ -42,6 +40,6 @@ func main() {
 		u.AtInterrupt(func() {
 			c++
 		})
-		time.Sleep(200*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 }

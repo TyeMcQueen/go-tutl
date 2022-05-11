@@ -50,7 +50,7 @@ func TestS(t *testing.T) {
 	u.Is(120, 'x', `rune 'x' is number`, t)
 
 	u.Is("1.23456789012", u.V(1.234567890123456789), "V float64", t)
-	u.Is("0,1.23456789012", u.V([]float64{0,1.234567890123456789}), "V []float64", t)
+	u.Is("0,1.23456789012", u.V([]float64{0, 1.234567890123456789}), "V []float64", t)
 	u.Is("1.2346", u.V(float32(1.23456789)), "V float32", t)
 	u.Is("1.23456789012", u.S(1.234567890123456789), "S float64", t)
 
@@ -119,8 +119,8 @@ type mock struct {
 }
 
 func (m *mock) Failed() bool { return false }
-func (m *mock) Helper() { }
-func (m *mock) clear()  { m.output = m.output[:0]; m.fails = 0 }
+func (m *mock) Helper()      {}
+func (m *mock) clear()       { m.output = m.output[:0]; m.fails = 0 }
 
 func (m *mock) Error(args ...interface{}) {
 	m.fails++
@@ -138,7 +138,7 @@ func (m *mock) Log(args ...interface{}) {
 
 func (m *mock) Logf(format string, args ...interface{}) {
 	line := fmt.Sprintf(format, args...)
-	if ! strings.HasSuffix(line, "\n") {
+	if !strings.HasSuffix(line, "\n") {
 		line = line + "\n"
 	}
 	m.output = append(m.output, line)
@@ -146,7 +146,7 @@ func (m *mock) Logf(format string, args ...interface{}) {
 
 func (m *mock) isOutput(desc string, t *testing.T, want ...string) {
 	t.Helper()
-	if u.Is(len(want), len(m.output), desc + " count", t) {
+	if u.Is(len(want), len(m.output), desc+" count", t) {
 		for i, o := range want {
 			if strings.HasSuffix(m.output[i], "\n") {
 				m.output[i] = m.output[i][:len(m.output[i])-1]
@@ -170,29 +170,29 @@ func (m *mock) likeOutput(desc string, t *testing.T, likes ...string) {
 }
 
 func TestOutput(t *testing.T) {
-	m := new(mock)  // Mock controller
-	s := u.New(m)   // Simulated tester
+	m := new(mock) // Mock controller
+	s := u.New(m)  // Simulated tester
 
 	u.Is(false, s.Is(true, false, "anti-tautology"), "Is false", t)
 	m.isOutput("simple out", t, "Got false not true for anti-tautology.")
 
 	s.Is("longish stuff", "longer stuff", "were stuff longer or longish")
 	m.isOutput("longish out", t,
-		"\n" + `Got "longer stuff" not "longish stuff" for ` +
-		`were stuff longer or longish.`)
+		"\n"+`Got "longer stuff" not "longish stuff" for `+
+			`were stuff longer or longish.`)
 
 	s.Is("longish stuff", "longer stuffy", "were stuff longer or longish")
 	m.isOutput("longer out", t,
-		"\nGot \"longer stuffy\"" +
-		"\nnot \"longish stuff\"" +
-		"\nfor were stuff longer or longish.")
+		"\nGot \"longer stuffy\""+
+			"\nnot \"longish stuff\""+
+			"\nfor were stuff longer or longish.")
 
 	s.Is("two\nlines", "one line", "multi-line")
 	m.isOutput("longer out", t,
-		"\nGot \"one line\"" +
-		"\nnot \"two" +
-		"\n....lines\"" +
-		"\nfor multi-line.")
+		"\nGot \"one line\""+
+			"\nnot \"two"+
+			"\n....lines\""+
+			"\nfor multi-line.")
 
 	if h, err := os.Open("go.mod"); err != nil {
 		t.Error("Failed to read go.mod file: ", err)
@@ -245,9 +245,9 @@ func TestOutput(t *testing.T) {
 		m.clear()
 	}
 
-	for _, short := range([]string{"", "!"}) {
-		u.Is(1, s.Like("Too short", "short", short), `just "` + short + `"`, t)
-		m.likeOutput(`just "` + short + `" output`, t,
+	for _, short := range []string{"", "!"} {
+		u.Is(1, s.Like("Too short", "short", short), `just "`+short+`"`, t)
+		m.likeOutput(`just "`+short+`" output`, t,
 			"[Mm]atch strings passed to Like[(][)]",
 			"*must not be empty",
 			`*nor "!"`,

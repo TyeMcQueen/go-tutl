@@ -58,7 +58,7 @@ type FakeTester struct {
 //
 var StdoutTester = FakeTester{os.Stdout, false}
 
-func (out FakeTester) Helper() { }
+func (out FakeTester) Helper() {}
 
 func (out FakeTester) Log(args ...interface{}) {
 	fmt.Fprintln(out.Output, args...)

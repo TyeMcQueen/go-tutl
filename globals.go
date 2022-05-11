@@ -180,9 +180,12 @@ func (o *Options) EscapeNewline(b bool) {
 //
 func Escape(r rune) string {
 	switch r {
-	case '\n':  return `\n`
-	case '\r':  return `\r`
-	case '\t':  return `\t`
+	case '\n':
+		return `\n`
+	case '\r':
+		return `\r`
+	case '\t':
+		return `\t`
 	}
 	if r < 32 || 0x7F == r {
 		return fmt.Sprintf("\\x%02X", r)
@@ -307,7 +310,7 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 	vwant := o.V(want)
 	vgot := o.V(got)
 	if vwant == vgot {
-	//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
+		//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
 		return true
 	}
 	sGot := o.S(got)
@@ -350,7 +353,7 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 	vhate := o.V(hate)
 	vgot := o.V(got)
 	if vhate != vgot {
-	//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
+		//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
 		return true
 	}
 	t.Error(
@@ -501,20 +504,20 @@ func (o Options) Like(
 				failed++
 				sMatch := o.ReplaceNewlines(m[1:])
 				if negate {
-					t.Errorf(and + "Found unwanted <%s>...", sMatch)
+					t.Errorf(and+"Found unwanted <%s>...", sMatch)
 				} else {
-					t.Errorf(and + "No <%s>...", sMatch)
+					t.Errorf(and+"No <%s>...", sMatch)
 				}
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
 			invalid++
-			t.Errorf(and + "Invalid regexp (%s) in test code: %v", m, err)
-		} else if negate == ( "" != re.FindString(sgot) ) {
+			t.Errorf(and+"Invalid regexp (%s) in test code: %v", m, err)
+		} else if negate == ("" != re.FindString(sgot)) {
 			failed++
 			if negate {
-				t.Errorf(and + "Like unwanted /%s/...", m)
+				t.Errorf(and+"Like unwanted /%s/...", m)
 			} else {
-				t.Errorf(and + "Not like /%s/...", m)
+				t.Errorf(and+"Not like /%s/...", m)
 			}
 		}
 		if 0 < failed {
@@ -524,5 +527,5 @@ func (o Options) Like(
 	if 0 < failed {
 		t.Errorf("In <%s> for %s.", sgot, desc)
 	}
-	return failed+invalid
+	return failed + invalid
 }

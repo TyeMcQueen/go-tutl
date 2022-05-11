@@ -33,7 +33,7 @@ func (r *responder) Read(b []byte) (int, error) {
 	if "" == r.response {
 		return 0, io.EOF
 	}
-	<- r.ch
+	<-r.ch
 	n := copy(b, r.response)
 	r.response = ""
 	return n, nil
@@ -43,7 +43,7 @@ func TestInt(t *testing.T) {
 	// Compile internal/test_int.go w/ race condition checking enabled:
 	u := tutl.New(t)
 	cmd := exec.Command("go", "build", "-race", "./internal/test_int.go")
-	if ! u.Is(nil, cmd.Run(), "go-build works") {
+	if !u.Is(nil, cmd.Run(), "go-build works") {
 		return
 	}
 
@@ -57,17 +57,17 @@ func TestInt(t *testing.T) {
 		cmd.Stderr = err
 		ich := make(chan bool, 1)
 		cmd.Stdin = &responder{"go\n", ich}
-		if ! u.Is(nil, cmd.Start(), "spawn ./test_int") {
+		if !u.Is(nil, cmd.Start(), "spawn ./test_int") {
 			return
 		}
-		sig := <- och
+		sig := <-och
 		ich <- sig
-		if ! u.Is(nil, cmd.Process.Signal(syscall.SIGINT), "kill INT works") {
+		if !u.Is(nil, cmd.Process.Signal(syscall.SIGINT), "kill INT works") {
 			return
 		}
 		exit := cmd.Wait()
 		ee, ok := exit.(*exec.ExitError)
-		if ! u.Is(true, ok, "./test_int got exit error") {
+		if !u.Is(true, ok, "./test_int got exit error") {
 			t.Log("How ./test_int failed: ", exit)
 			return
 		}
@@ -93,7 +93,7 @@ func TestInt(t *testing.T) {
 		cmd.Stdout = out
 		err := new(bytes.Buffer)
 		cmd.Stderr = err
-		if ! u.Is(nil, cmd.Run(), "2nd ./test_int succeeded") {
+		if !u.Is(nil, cmd.Run(), "2nd ./test_int succeeded") {
 			u.IsNot("", err, "2nd ./test_int stderr")
 			return
 		}
