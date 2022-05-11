@@ -29,9 +29,24 @@ type Options struct {
 	doNotEscape rune
 
 	// LineWidth influences when "Got {got} not {want} for {title}" output
-	// gets split onto multiple lines instead.  See Is() for details.
+	// gets split onto multiple lines instead.  If that string is longer
+	// than LineWidth, then it gets split into "Got ...\nnot ...\n...".
+	//
+	// This also happens if you aren't escaping newlines and either value
+	// contains a newline (and the newlines get indentation added so that
+	// the output is easier to understand).
+	//
+	// If the diagnostic line is no longer than LineWidth but is longer than
+	// LineWidth-PathLength, then a newline gets prepended to it as the
+	// prepended source info would likely cause the diagnostic to wrap.
 	//
 	LineWidth int
+
+	// PathLength is the maximum expected length of the path to the
+	// *_test.go file being run plus the line number that 'go test'
+	// prepends to each diagnostic.  It defaults to 20.
+	//
+	PathLength int
 
 	// Digits32 specifies how many significant digits to use when comparing
 	// 'float32' values.  In particular, if a 'float32' or '[]float32' value
@@ -69,7 +84,7 @@ const MaxDigits64 = 15
 // you make a copy and use it, such as via New() (see Options for more).
 //
 var Default = Options{
-	doNotEscape: '\n', LineWidth: 72, Digits32: 5, Digits64: 12}
+	doNotEscape: '\n', LineWidth: 72, PathLength: 20, Digits32: 5, Digits64: 12}
 
 // V() just converts a value to a string.  It is similar to 'fmt.Sprint(v)'.
 // But it treats '[]byte' values as 'string's.  It also (by default) uses
@@ -305,7 +320,7 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 		t.Errorf("\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
 		return false
 	}
-	if wid <= o.LineWidth-20 {
+	if wid <= o.LineWidth-o.PathLength {
 		t.Error(line)
 	} else if wid <= o.LineWidth {
 		t.Error("\n" + line)

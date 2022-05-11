@@ -205,6 +205,13 @@ func (u *TUTL) SetLineWidth(w int) {
 	u.o.LineWidth = w
 }
 
+// SetPathLength() is the same as setting the global 'tutl.Default.PathLength'
+// except it only changes the setting for the invoking TUTL object.
+//
+func (u *TUTL) SetPathLength(l int) {
+	u.o.PathLength = l
+}
+
 // SetDigits32() is the same as setting the global 'tutl.Default.Digits32'
 // value, except it only changes the setting for the invoking TUTL object.
 //
