@@ -245,3 +245,13 @@ func (u TUTL) Rune(r rune) string {
 func (u TUTL) Char(c byte) string {
 	return Char(c)
 }
+
+// GetPanic() calls the passed-in function and returns 'nil' or the argument
+// that gets passed to panic() from within it.  This can be used in other
+// test functions, for example:
+//
+//      u.Is(nil, u.GetPanic(func(){ obj.Method(nil) }), "Method panic")
+//
+func (_ TUTL) GetPanic(run func()) interface{} {
+	return GetPanic(run)
+}

@@ -217,6 +217,21 @@ func Char(c byte) string {
 	return Rune(rune(c))
 }
 
+// GetPanic() calls the passed-in function and returns 'nil' or the argument
+// that gets passed to panic() from within it.  This can be used in other
+// test functions, for example:
+//
+//      u := tutl.New(t)
+//      u.Is(nil, u.GetPanic(func(){ obj.Method(nil) }), "Method panic")
+//
+func GetPanic(run func()) (failure interface{}) {
+	defer func() {
+		failure = recover()
+	}()
+	run()
+	return
+}
+
 // S() returns a single string composed by converting each argument into
 // a string and concatenating all of those strings.  It is similar to but not
 // identical to 'fmt.Sprint()'.  S() never inserts spaces between your values
