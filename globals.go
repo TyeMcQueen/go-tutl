@@ -495,7 +495,8 @@ func (o Options) Like(
 		empty = "blank"
 	}
 	if "" != empty {
-		t.Errorf("No string to check what it is Like(); got %s.", empty)
+		t.Errorf("No string to check what it is Like(); got %s for %s.",
+			empty, desc)
 		return len(match)
 	}
 
