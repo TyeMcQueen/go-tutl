@@ -6,8 +6,8 @@ go-tutl is a Trivial Unit Testing Library (for Go).  Example usage:
 	import (
 		"testing"
 
-		u "github.com/TyeMcQueen/go-tutl"
-		_ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
+		u "github.com/Unity-Technologies/go-tutl-internal"
+		_ "github.com/Unity-Technologies/go-tutl-internal/hang" // ^C gives stack dumps.
 	)
 
 	func TestDur(t *testing.T) {
@@ -22,7 +22,7 @@ go-tutl is a Trivial Unit Testing Library (for Go).  Example usage:
 			"(Unknown|Invalid) unit", "*fortnight")
 	}
 
-See also "go doc github.com/TyeMcQueen/go-tutl/hang".
+See also "go doc github.com/Unity-Technologies/go-tutl-internal/hang".
 
 */
 package tutl
@@ -100,7 +100,7 @@ type TUTL struct {
 //
 //      import (
 //          "testing"
-//          u "github.com/TyeMcQueen/go-tutl"
+//          u "github.com/Unity-Technologies/go-tutl-internal"
 //          ^^  Import alias
 //      )
 //
@@ -115,7 +115,7 @@ type TUTL struct {
 //
 //      import (
 //          "testing"
-//          "github.com/TyeMcQueen/go-tutl"
+//          "github.com/Unity-Technologies/go-tutl-internal"
 //      )
 //
 //      func TestDur(t *testing.T) {

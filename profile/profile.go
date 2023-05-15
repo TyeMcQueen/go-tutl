@@ -9,7 +9,7 @@ import (
 	"runtime/pprof"
 	"strings"
 
-	"github.com/TyeMcQueen/go-tutl"
+	"github.com/Unity-Technologies/go-tutl-internal"
 )
 
 func die(format string, args ...interface{}) {
@@ -29,8 +29,8 @@ func die(format string, args ...interface{}) {
 //
 //      import(
 //          "os"
-//          "github.com/TyeMcQueen/go-tutl"
-//          "github.com/TyeMcQueen/go-tutl/profile"
+//          "github.com/Unity-Technologies/go-tutl-internal"
+//          "github.com/Unity-Technologies/go-tutl-internal/profile"
 //      )
 //
 //      func main() {
@@ -64,7 +64,7 @@ func ProfileCPU(file string) func() {
 //
 //      import(
 //          "os"
-//          "github.com/TyeMcQueen/go-tutl/profile"
+//          "github.com/Unity-Technologies/go-tutl-internal/profile"
 //      )
 //
 //      func main() {

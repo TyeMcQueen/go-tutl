@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	u "github.com/TyeMcQueen/go-tutl"
+	u "github.com/Unity-Technologies/go-tutl-internal"
 )
 
 func note(s string) {

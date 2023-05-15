@@ -19,8 +19,8 @@ Example usage:
     import (
         "testing"
 
-        u "github.com/TyeMcQueen/go-tutl"
-        _ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
+        u "github.com/Unity-Technologies/go-tutl-internal"
+        _ "github.com/Unity-Technologies/go-tutl-internal/hang" // ^C gives stack dumps.
     )
 
     func TestDur(t *testing.T) {
@@ -49,7 +49,7 @@ It also provides a special module to deal with infinite loops in your
 code.  If you include:
 
     import (
-        _ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
+        _ "github.com/Unity-Technologies/go-tutl-internal/hang" // ^C gives stack dumps.
     )
 
 in just one of your *_test.go files, then you can interrupt (such as

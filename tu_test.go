@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	u "github.com/TyeMcQueen/go-tutl"
+	u "github.com/Unity-Technologies/go-tutl-internal"
 )
 
 func TestMain(m *testing.M) {

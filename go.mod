@@ -1,1 +1,1 @@
-module github.com/TyeMcQueen/go-tutl
+module github.com/Unity-Technologies/go-tutl-internal

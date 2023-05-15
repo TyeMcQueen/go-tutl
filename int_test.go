@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/TyeMcQueen/go-tutl"
+	"github.com/Unity-Technologies/go-tutl-internal"
 )
 
 type waiter struct {

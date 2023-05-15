@@ -22,7 +22,7 @@ var skip = true
 // to see stack traces of everything that is running.  This is particularly
 // useful if your code has an infinite loop.
 //
-// See also "go doc github.com/TyeMcQueen/go-tutl/hang".
+// See also "go doc github.com/Unity-Technologies/go-tutl-internal/hang".
 //
 // ShowStackOnInterrupt() can also be used from non-test programs.
 //

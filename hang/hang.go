@@ -3,7 +3,7 @@
 Include:
 
 	import (
-		_ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
+		_ "github.com/Unity-Technologies/go-tutl-internal/hang" // ^C gives stack dumps.
 	)
 
 in just one of your *_test.go files (per module) so that you can interrupt
@@ -26,7 +26,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TyeMcQueen/go-tutl"
+	"github.com/Unity-Technologies/go-tutl-internal"
 )
 
 // If your tests hang, interrupt them (Ctrl-C) to get stack dumps of what is
