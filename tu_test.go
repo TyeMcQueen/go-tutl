@@ -52,7 +52,36 @@ func TestS(t *testing.T) {
 	u.Is("1.23456789012", u.V(1.234567890123456789), "V float64", t)
 	u.Is("0,1.23456789012", u.V([]float64{0, 1.234567890123456789}), "V []float64", t)
 	u.Is("1.2346", u.V(float32(1.23456789)), "V float32", t)
+	u.Is("0,1.2346", u.V([]float32{0, 1.234567890123456789}), "V []float64", t)
 	u.Is("1.23456789012", u.S(1.234567890123456789), "S float64", t)
+
+	u.SetDigits32(3)
+	u.Is(float32(1.234), float32(1.228), "3dig f32", t)
+	u.SetDigits32(u.MaxDigits32)
+	u.Is("1.234567", float32(1.2345672), "7dig f32", t)
+	u.SetDigits32(1 + u.MaxDigits32)
+	u.Is(fmt.Sprint(float32(1.234567891123)),
+		float32(1.234567891123), "8dig f32", t)
+	u.SetDigits32(-1)
+	u.Is(fmt.Sprint(float32(1.234567891123)),
+		float32(1.234567891123), "-1dig f32", t)
+	u.SetDigits32(0)
+	u.Is("1.2345", float32(1.23448), "0dig f32", t)
+
+	u.SetDigits64(3)
+	u.Is(1.234, 1.228, "3dig f64", t)
+	u.SetDigits64(u.MaxDigits64)
+	u.Is("1.23456789012345", 1.234567890123446789, "15dig f64", t)
+	u.SetDigits64(1 + u.MaxDigits64)
+	u.Is(fmt.Sprint(1.234567891123456789),
+		1.234567891123456789, "16dig f64", t)
+	u.SetDigits64(-1)
+	u.Is(fmt.Sprint(1.234567891123456789),
+		1.234567891123456789, "-1dig f64", t)
+	u.SetDigits64(0)
+	u.Is("1.23456789012", 1.234567890123456789, "0dig f64", t)
+	u.Circa(3, 1.23456, 1.234567, "u.circa", t)
+
 
 	u.Is(`>"hi"`, u.S(">", []byte("hi")), `"hi" []byte`, t)
 	u.Is(`>"Oops"`, u.S(">", fmt.Errorf("Oops")), `"Oops" error`, t)
@@ -208,12 +237,11 @@ func TestOutput(t *testing.T) {
 			"Got \"nil\" not \"os.File\" for not type.")
 	}
 
-	s.Is(true, s.Circa(3, 1.23456, 1.234567, "circa"), "circa")
+	s.Is(true, s.Circa(3, 1.23456, 1.234567, "s.circa"), "circa")
 	m.isOutput("circa, no output", t)
-
-	s.Is(false, s.Circa(3, 1.23456, 1.2356, "circa"), "circa")
-	m.isOutput("circa, no output", t,
-		"Got 1.24 not 1.23 for circa.")
+	s.Is(false, s.Circa(3, 1.23456, 1.2356, "s.circa"), "circa")
+	m.isOutput("circa output", t,
+		`Got "1.24" not "1.23" for s.circa.`)
 
 	u.Is(1, s.Like("", "description"), "1 failure if like no strings", t)
 	m.likeOutput("like no strings", t,
