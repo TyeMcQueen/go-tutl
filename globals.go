@@ -445,12 +445,8 @@ func (o Options) Circa(
 ) bool {
 	t.Helper()
 	swant := fmt.Sprintf("%.*g", digits, want)
-	sgot := fmt.Sprintf("%.*g", digits, got)
-	if swant == sgot {
-		return true
-	}
-	t.Error("Got " + sgot + " not " + swant + " for " + desc + ".")
-	return false
+	sgot  := fmt.Sprintf("%.*g", digits, got)
+	return o.Is(swant, sgot, desc, t)
 }
 
 // Like() is most often used to test error messages (or other complex
