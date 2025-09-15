@@ -172,6 +172,12 @@ func (o *Options) EscapeNewline(b bool) {
 	}
 }
 
+func SetDigits32(d int) { Default.SetDigits32(d) }
+func SetDigits64(d int) { Default.SetDigits64(d) }
+
+func (o *Options) SetDigits32(d int) { o.Digits32 = d }
+func (o *Options) SetDigits64(d int) { o.Digits64 = d }
+
 // Escape() returns a string containing the passed-in rune, unless it is a
 // control character.  Runes '\n', '\r', and '\t' each return a 2-character
 // string (\n, \r, or \t).  Other 7-bit control characters are turned into
