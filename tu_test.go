@@ -143,27 +143,16 @@ func TestRune(t *testing.T) {
 }
 
 type mock struct {
-	fails  int
+	u.FakeTester
 	output []string
 }
 
-func (m *mock) Failed() bool { return false }
-func (m *mock) Helper()      {}
-func (m *mock) clear()       { m.output = m.output[:0]; m.fails = 0 }
-
-func (m *mock) Error(args ...interface{}) {
-	m.fails++
-	m.Log(args...)
+func (m *mock) Write(b []byte) (int, error) {
+	m.output = append(m.output, string(b))
+	return len(b), nil
 }
 
-func (m *mock) Errorf(format string, args ...interface{}) {
-	m.fails++
-	m.Logf(format, args...)
-}
-
-func (m *mock) Log(args ...interface{}) {
-	m.output = append(m.output, fmt.Sprintln(args...))
-}
+func (m *mock) clear() { m.output = m.output[:0] }
 
 func (m *mock) Logf(format string, args ...interface{}) {
 	line := fmt.Sprintf(format, args...)
@@ -199,8 +188,10 @@ func (m *mock) likeOutput(desc string, t *testing.T, likes ...string) {
 }
 
 func TestOutput(t *testing.T) {
-	m := new(mock) // Mock controller
-	s := u.New(m)  // Simulated tester
+	m := new(mock)
+	m.FakeTester = u.FakeTester{m, false}
+	u.Is(false, m.Failed(), "fake.Failed", t)
+	s := u.New(m) // Simulated tester
 
 	u.Is(false, s.Is(true, false, "anti-tautology"), "Is false", t)
 	m.isOutput("simple out", t, "Got false not true for anti-tautology.")
