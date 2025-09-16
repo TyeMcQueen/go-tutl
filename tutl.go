@@ -174,6 +174,14 @@ func (u TUTL) ToMap(value any) Map {
 	return u.o.ToMap(value, u)
 }
 
+// Same as the non-method tutl.ListToJson() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) ListToJson(args ...any) []byte {
+	u.Helper()
+	return u.o.ListToJson(u, args...)
+}
+
 // Same as the non-method tutl.Element() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
