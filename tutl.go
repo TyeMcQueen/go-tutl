@@ -38,10 +38,10 @@ import (
 //
 type TestingT interface {
 	Helper()
-	Error(args ...interface{})
-	Errorf(format string, args ...interface{})
-	Log(args ...interface{})
-	Logf(format string, args ...interface{})
+	Error(args ...any)
+	Errorf(format string, args ...any)
+	Log(args ...any)
+	Logf(format string, args ...any)
 	Failed() bool
 }
 
@@ -60,23 +60,23 @@ var StdoutTester = FakeTester{os.Stdout, false}
 
 func (out FakeTester) Helper() {}
 
-func (out FakeTester) Log(args ...interface{}) {
+func (out FakeTester) Log(args ...any) {
 	fmt.Fprintln(out.Output, args...)
 }
 
-func (out FakeTester) Logf(format string, args ...interface{}) {
+func (out FakeTester) Logf(format string, args ...any) {
 	if "" == format || '\n' != format[len(format)-1] {
 		format += "\n"
 	}
 	fmt.Fprintf(out.Output, format, args...)
 }
 
-func (out FakeTester) Error(args ...interface{}) {
+func (out FakeTester) Error(args ...any) {
 	out.Log(args...)
 	out.HasFailed = true
 }
 
-func (out FakeTester) Errorf(format string, args ...interface{}) {
+func (out FakeTester) Errorf(format string, args ...any) {
 	out.Logf(format, args...)
 	out.HasFailed = true
 }
@@ -137,7 +137,7 @@ func New(t TestingT) TUTL { return TUTL{t, Default} }
 // Same as the non-method tutl.Is() except the '*testing.T' argument is held
 // in the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) Is(want, got interface{}, desc string) bool {
+func (u TUTL) Is(want, got any, desc string) bool {
 	u.Helper()
 	return u.o.Is(want, got, desc, u)
 }
@@ -145,7 +145,7 @@ func (u TUTL) Is(want, got interface{}, desc string) bool {
 // Same as the non-method tutl.IsNot() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
+func (u TUTL) IsNot(hate, got any, desc string) bool {
 	u.Helper()
 	return u.o.IsNot(hate, got, desc, u)
 }
@@ -153,7 +153,7 @@ func (u TUTL) IsNot(hate, got interface{}, desc string) bool {
 // Same as the non-method tutl.HasType() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) HasType(want string, got interface{}, desc string) bool {
+func (u TUTL) HasType(want string, got any, desc string) bool {
 	u.Helper()
 	return u.o.HasType(want, got, desc, u)
 }
@@ -169,7 +169,7 @@ func (u TUTL) Circa(digits int, want, got float64, desc string) bool {
 // Same as the non-method tutl.Like() except the '*testing.T' argument is
 // held in the TUTL object and so does not need to be passed as an argument.
 //
-func (u TUTL) Like(got interface{}, desc string, match ...string) int {
+func (u TUTL) Like(got any, desc string, match ...string) int {
 	u.Helper()
 	return u.o.Like(got, desc, u, match...)
 }
@@ -177,12 +177,12 @@ func (u TUTL) Like(got interface{}, desc string, match ...string) int {
 // Same as the non-method tutl.S() except that it honors the option settings
 // of the invoking TUTL object, not of the 'tutl.Default' global.
 //
-func (u TUTL) S(vs ...interface{}) string { return u.o.S(vs...) }
+func (u TUTL) S(vs ...any) string { return u.o.S(vs...) }
 
 // Same as the non-method tutl.V() except that it honors the option settings
 // of the invoking TUTL object, not of the tutl.Default global.
 //
-func (u TUTL) V(v interface{}) string {
+func (u TUTL) V(v any) string {
 	return u.o.V(v)
 }
 
@@ -252,6 +252,6 @@ func (u TUTL) Char(c byte) string {
 //
 //      u.Is(nil, u.GetPanic(func(){ obj.Method(nil) }), "Method panic")
 //
-func (_ TUTL) GetPanic(run func()) interface{} {
+func (_ TUTL) GetPanic(run func()) any {
 	return GetPanic(run)
 }

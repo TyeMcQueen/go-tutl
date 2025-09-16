@@ -91,12 +91,12 @@ var Default = Options{
 // fewer significant digits when converting 'float32', 'float64',
 // '[]float32', and '[]float64' values (see Options for details).
 //
-func V(v interface{}) string {
+func V(v any) string {
 	return Default.V(v)
 }
 
 // See tutl.V() for documentation.
-func (o Options) V(v interface{}) string {
+func (o Options) V(v any) string {
 	switch t := v.(type) {
 	case string:
 		return t
@@ -230,7 +230,7 @@ func Char(c byte) string {
 //      u := tutl.New(t)
 //      u.Is(nil, u.GetPanic(func(){ obj.Method(nil) }), "Method panic")
 //
-func GetPanic(run func()) (failure interface{}) {
+func GetPanic(run func()) (failure any) {
 	defer func() {
 		failure = recover()
 	}()
@@ -259,12 +259,12 @@ func GetPanic(run func()) (failure interface{}) {
 // is just an alias for 'int32' so S('x') == S(int32('x')) == "120" while
 // S("x"[0]) == S(byte('x')) == S(uint8('x')) = "'x'".
 //
-func S(vs ...interface{}) string {
+func S(vs ...any) string {
 	return Default.S(vs...)
 }
 
 // See tutl.S() for documentation.
-func (o Options) S(vs ...interface{}) string {
+func (o Options) S(vs ...any) string {
 	ss := make([]string, len(vs))
 	for j, ix := range vs {
 		s := ""
@@ -320,13 +320,13 @@ func (o Options) S(vs ...interface{}) string {
 // that would make no sense to run given a prior failure or to display extra
 // debug information only when a test fails.
 //
-func Is(want, got interface{}, desc string, t TestingT) bool {
+func Is(want, got any, desc string, t TestingT) bool {
 	t.Helper()
 	return Default.Is(want, got, desc, t)
 }
 
 // See tutl.Is() for documentation.
-func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
+func (o Options) Is(want, got any, desc string, t TestingT) bool {
 	t.Helper()
 	vwant := o.V(want)
 	vgot := o.V(got)
@@ -363,13 +363,13 @@ func (o Options) Is(want, got interface{}, desc string, t TestingT) bool {
 // IsNot() returns whether the test passed, which is useful for skipping
 // tests that would make no sense to run given a prior failure.
 //
-func IsNot(hate, got interface{}, desc string, t TestingT) bool {
+func IsNot(hate, got any, desc string, t TestingT) bool {
 	t.Helper()
 	return Default.IsNot(hate, got, desc, t)
 }
 
 // See tutl.IsNot() for documentation.
-func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
+func (o Options) IsNot(hate, got any, desc string, t TestingT) bool {
 	t.Helper()
 	vhate := o.V(hate)
 	vgot := o.V(got)
@@ -402,14 +402,14 @@ func (o Options) IsNot(hate, got interface{}, desc string, t TestingT) bool {
 // HasType() returns whether the test passed, which is useful for skipping
 // tests that would make no sense to run given a prior failure.
 //
-func HasType(want string, got interface{}, desc string, t TestingT) bool {
+func HasType(want string, got any, desc string, t TestingT) bool {
 	t.Helper()
 	return Default.HasType(want, got, desc, t)
 }
 
 // See tutl.HasType() for documentation.
 func (o Options) HasType(
-	want string, got interface{}, desc string, t TestingT,
+	want string, got any, desc string, t TestingT,
 ) bool {
 	t.Helper()
 	tgot := "nil"
@@ -472,14 +472,14 @@ func (o Options) Circa(
 // returned is the number of match strings as it is assumed that none of
 // them would have matched the empty string).
 //
-func Like(got interface{}, desc string, t TestingT, match ...string) int {
+func Like(got any, desc string, t TestingT, match ...string) int {
 	t.Helper()
 	return Default.Like(got, desc, t, match...)
 }
 
 // See tutl.Like() for documentation.
 func (o Options) Like(
-	got interface{}, desc string, t TestingT, match ...string,
+	got any, desc string, t TestingT, match ...string,
 ) int {
 	t.Helper()
 	if 0 == len(match) {

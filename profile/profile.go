@@ -12,7 +12,7 @@ import (
 	"github.com/TyeMcQueen/go-tutl"
 )
 
-func die(format string, args ...interface{}) {
+func die(format string, args ...any) {
 	if !strings.HasSuffix(format, "\n") {
 		format += "\n"
 	}

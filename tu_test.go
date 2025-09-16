@@ -161,7 +161,7 @@ func (m *mock) Write(b []byte) (int, error) {
 
 func (m *mock) clear() { m.output = m.output[:0] }
 
-func (m *mock) Logf(format string, args ...interface{}) {
+func (m *mock) Logf(format string, args ...any) {
 	line := fmt.Sprintf(format, args...)
 	if !strings.HasSuffix(line, "\n") {
 		line = line + "\n"
