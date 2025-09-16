@@ -33,6 +33,14 @@ import (
 	"os"
 )
 
+// Map is just an alias type for 'map[string]any'.
+//
+type Map = map[string]any
+
+// LiteralYaml("some string") is used with ListToJson()
+//
+type LiteralYaml string
+
 // TestingT is an interface covering the methods of '*testing.T' that TUTL
 // uses.  This makes it easier to test this test library.
 //
@@ -156,6 +164,38 @@ func (u TUTL) IsNot(hate, got any, desc string) bool {
 func (u TUTL) HasType(want string, got any, desc string) bool {
 	u.Helper()
 	return u.o.HasType(want, got, desc, u)
+}
+
+// Same as the non-method tutl.ToMap() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) ToMap(value any) Map {
+	u.Helper()
+	return u.o.ToMap(value, u)
+}
+
+// Same as the non-method tutl.Element() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) Element(value any, key string) any {
+	u.Helper()
+	return u.o.Element(value, key, u)
+}
+
+// Same as the non-method tutl.Has() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) Has(want any, got any, desc string) int {
+	u.Helper()
+	return u.o.Has(want, got, desc, u)
+}
+
+// Same as the non-method tutl.Lacks() except the '*testing.T' argument is
+// held in the TUTL object and so does not need to be passed as an argument.
+//
+func (u TUTL) Lacks(got any, desc string, keys ...string) int {
+	u.Helper()
+	return u.o.Lacks(got, desc, u, keys...)
 }
 
 // Same as the non-method tutl.Circa() except the '*testing.T' argument is
