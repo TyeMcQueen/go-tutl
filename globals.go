@@ -1,10 +1,15 @@
 package tutl
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"sigs.k8s.io/yaml"
 )
 
 // Options contains user preference options.  The 'tutl.Default' global
@@ -223,6 +228,108 @@ func Char(c byte) string {
 	return Rune(rune(c))
 }
 
+// ListToJson() takes a list of values alternating between a string containing
+// a fragment of YAML followed by an arbitrary value to be converted to a JSON
+// string. The resulting strings are concatenated together, interpretted as
+// YAML, and converted to JSON (which is returned). This is a very compact
+// form of templating for producing JSON. For example:
+//
+//      tutl.ListToJson("{ID:", id, ",Name:", name, ",Rank:", rank, "}")
+//
+// might return
+//
+//      `{ "ID": "876-TTJ-23", "Name": "Ray \"Bob\" Keen", "Rank": 12 }`
+//
+// A space is always added after JSON items and is added before if the prior
+// character was not from " \t\n" (since YAML treats `Key:"Val"` as 1 string).
+//
+// An argument that is a string cast to the 'tutl.LiteralYaml' type is always
+// treated as a fragment of YAML to be appended unchanged and also resets
+// argument counting so the next argument must be a string to be concatenated
+// unchanged. If this 2nd string is not also cast to LiteralYaml, then the
+// following argument will be converted to JSON, resuming the alternating
+// pattern. This can be useful when you are building a long YAML/JSON string:
+//
+//      const na = tutl.LiteralYaml(""), nl = tutl.LiteralYaml("\n")
+//
+//      tutl.Has(tutl.ListToJson(
+//          "{ID:", id, ",Name:", name, ",Ranks:", ranks, ",", na,
+//          "Active:", active, ",Exclude:[]}"),
+//          got, desc, t)
+//
+//      tutl.Has(tutl.ListToJson(
+//          "Config:", nl,
+//          "  Name:", configName, nl,
+//          "  Tier: dev", nl,
+//          ...
+//          "  Domains: ", domains),
+//          got, desc, t)
+//
+// If an attempt to convert an argument to JSON fails, then a test failure
+// will be logged and 'nil' will be returned. Similarly, if the resulting
+// YAML is invalid, then a test failure is logged along with the full
+// not-YAML string (and 'nil' is returned).
+//
+func ListToJson(t TestingT, args ...any) []byte {
+	t.Helper()
+	return Default.ListToJson(t, args...)
+}
+
+func (o Options) ListToJson(t TestingT, args ...any) []byte {
+	t.Helper()
+	buf := bytes.Buffer{}
+	literal := true
+	for _, arg := range args {
+		if v, ok := arg.(LiteralYaml); ok {
+			buf.WriteString(string(v))
+			literal = true
+			continue
+		} else if ! literal {
+			js, err := json.Marshal(arg)
+			if ! o.Is(
+				nil, err, fmt.Sprintf(
+					"ListToJson(): Can't convert type %T to JSON: %s", arg, err,
+				), t,
+			) {
+				return nil
+			}
+			end := buf.Len() - 1
+			if 0 <= end {
+				last := buf.Bytes()[end]
+				if ! strings.Contains(" \t\n", string(last)) {
+					buf.WriteString(" ")
+				}
+			}
+			buf.Write(js)
+			buf.WriteString(" ")
+			literal = true
+			continue
+		}
+		literal = false
+		switch v := arg.(type) {
+		case string:
+			buf.WriteString(v)
+		case []byte:
+			buf.Write(v)
+		default:
+			if ! o.Is(
+				"string|[]byte", fmt.Sprintf("%T", arg),
+				"ListToJson(): Invalid type for literal YAML fragment", t,
+			) {
+				return nil
+			}
+		}
+	}
+	js, err := yaml.YAMLToJSON(buf.Bytes())
+	if ! o.Is(
+		nil, err, fmt.Sprintf("ListToJson(): Invalid YAML: %v", err), t,
+	) {
+		t.Log(S("Invalid YAML=(\n", buf.Bytes(), "\n)."))
+		return nil
+	}
+	return js
+}
+
 // GetPanic() calls the passed-in function and returns 'nil' or the argument
 // that gets passed to panic() from within it.  This can be used in other
 // test functions, for example:
@@ -417,6 +524,251 @@ func (o Options) HasType(
 		tgot = fmt.Sprintf("%T", got)
 	}
 	return o.Is(want, tgot, desc, t)
+}
+
+// ToMap() takes a value to be converted to a tutl.Map type
+// ('map[string]any'). The value can already be a tutl.Map type, can be
+// JSON (a string or a []byte), or can be a data type that can be converted
+// to JSON.
+//
+// If 'value' needs to be converted to JSON but marhsaling fails, then
+// a test failure is logged and 'nil' is returned. This is also done if
+// unmarshaling JSON into the map is required but fails.
+//
+func ToMap(value any, t TestingT) Map {
+	t.Helper()
+	return Default.ToMap(value, t)
+}
+
+// See tutl.ToMap() for documentation.
+func (o Options) ToMap(value any, t TestingT) (retMap Map) {
+	t.Helper()
+	var js []byte
+	switch v := value.(type) {
+	case string:
+		js = []byte(v)
+	case []byte:
+		js = v
+	case *bytes.Buffer:
+		js = v.Bytes()
+	default:
+		js2, err := json.Marshal(value)
+		if ! Is(
+			nil, err, fmt.Sprintf(
+				"ToMap() JSON marshal of type %T", value),
+			t,
+		) {
+			return nil
+		}
+		js = js2
+	}
+	err := json.Unmarshal(js, &retMap)
+	if ! Is(nil, err, "ToMap() got invalid JSON", t) {
+		t.Log("JSON was: (\n", js, "\n).")
+		return nil
+	}
+	return
+}
+
+// Element() looks up an element in a struct/map[string]/JSON 'value' using a
+// 'key' string. Element() is designed to be used by Has()/Lacks()/Covers(),
+// but can be used directly.
+//
+// If 'key' starts with ".", then the remainder is treated as a list of
+// subkeys separated by ".". tutl.Element(value, ".Config.source") can return:
+//
+//      value.Config.source
+//      value["Config"]["source"]
+//      value["Config"].source
+//      value.Config["source"]
+//
+// If a key or subkey gets used against a struct that has no field by that
+// name, then a test failure is logged and 'nil' is returned. A lookup on a
+// map with no such key simply returns a 'nil' (logging nothing). If the
+// final lookup returns a non-scalar (an array, chan, func, map, pointer,
+// slice, struct, or interface holding a non-scalar) that holds the zero
+// value for that type, then 'nil' is returned instead (and not a non-nil
+// interface to a 'nil' of whatever type).
+//
+func Element(value any, key string, t TestingT) any {
+	t.Helper()
+	return Default.Element(value, key, t)
+}
+
+// See tutl.Element() for documentation.
+func (o Options) Element(value any, key string, t TestingT) any {
+	t.Helper()
+	if ! strings.HasPrefix(key, ".") {
+		return o.oneElement(value, key, "", t)
+	}
+	parts := strings.Split(strings.TrimPrefix(key, "."), ".")
+	for _, part := range parts {
+		value = o.oneElement(value, part, key, t)
+		if value == nil {
+			return nil
+		}
+	}
+	return value
+}
+
+func (o Options) oneElement(value any, subkey, key string, t TestingT) any {
+	t.Helper()
+	switch v := value.(type) {
+	case map[string]any:
+		ret, _ := v[subkey]
+		return ret
+	}
+	refVal := reflect.ValueOf(value)
+	if reflect.Map == refVal.Kind() {
+		ret := refVal.MapIndex(reflect.ValueOf(subkey))
+		if ret.IsZero() {
+			return nil
+		}
+		return ret.Interface()
+	} else if reflect.Struct == refVal.Kind() {
+		ret := refVal.FieldByName(subkey)
+		desc := S("Element(): No '", subkey, "'")
+		if key != "" {
+			desc = S(desc, " field (key=", key, ")")
+		}
+		if ! o.Is(true, ret.IsValid(), desc, t) {
+			return nil
+		}
+		return ret.Interface()
+	}
+	o.Is("Map|Struct", refVal.Kind(), fmt.Sprintf(
+		"Element(): Wrong type (%T) to look up '%s' element (key=%s)",
+		value, subkey, key), t)
+	return nil
+}
+
+// Covers() verifies that 'got' is a superset of 'want'. 'want' is a map/JSON
+// (see tutl.ToMap) representing required parts of the 'got' data structure.
+// The map and 'got' are traversed together [a part of 'got' being accessed
+// using the map's key string passed to tutl.Element()]. This traversal
+// recurses if the map's value is another map.
+//
+// When the next value in the map is not another map, the values are
+// compared, similar to:
+//
+//      tutl.Is(want[key], tutl.Element(got, key), ...)
+//
+// 'got' can be JSON, any 'map' type (not just tutl.Map), or a 'struct' type.
+//
+// Covers() returns the count of failing tests.
+//
+func Covers(want any, got any, desc string, t TestingT) int {
+	t.Helper()
+	return Default.Covers(want, got, desc, t)
+}
+
+// See tutl.Covers() for documentation.
+func (o Options) Covers(
+	want any, got any, desc string, t TestingT,
+) (fails int) {
+	t.Helper()
+	wantMap := o.ToMap(want, t)
+	fails += o.oneCover(wantMap, got, desc, "", t)
+	return fails
+}
+
+func (o Options) oneCover(
+	wantMap Map, gotAny any, desc, prefix string, t TestingT,
+) int {
+	fails := 0
+	for key, want := range wantMap {
+		got := o.Element(gotAny, key, t)
+		if w, ok := want.(Map); ok {
+			fails += o.oneCover(w, got, desc, prefix + key + ".", t)
+			continue
+		}
+		if ! o.Is(want, got, o.S(desc, ": ", prefix, key), t) {
+			fails++
+		}
+	}
+	return fails
+}
+
+// Has() takes a value ('got') and a list of key/value pairs. Each key is
+// used to access some part of 'got' and compare it to the paired value:
+//
+//      tutl.Is(value, tutl.Element(got, key), ...)
+//
+// For example:
+//
+//      got := GetConfig() // Get something to test
+//      tutl.Has("Default config", got, t,
+//          "Active", true, "MaxCount", 10_000, ".Tier.Name", "dev")
+//
+// 'got' can be JSON (see tutl.ToMap) or a 'struct' data type.
+// The above code can call the equivalent of (see also tutl.Element):
+//
+//      tutl.Is(true, got.Active, "Defautl Config: Active", t)
+// or
+//      tutl.Is(10_000, got["MaxCount"], "Defautl Config: MaxCount", t)
+// or
+//      tutl.Is("dev", got.Tier.Name, "Defautl Config: Tier.Name", t)
+// or
+//      tutl.Is("dev", got.Tier["Name"], "Defautl Config: Tier.Name", t)
+//
+// Has() returns the count of failing tests, or -1 if it was called
+// incorrectly.
+//
+func Has(t TestingT, desc string, got any, pairs ...any) int {
+	t.Helper()
+	return Default.Has(t, desc, got, pairs...)
+}
+
+// See tutl.Has() for documentation.
+func (o Options) Has(t TestingT, desc string, gotAny any, pairs ...any) int {
+	t.Helper()
+	fails := 0
+	if 1 == len(pairs) & 1 {
+		o.Is("Even number", len(pairs), "Number of 'pairs' scalars to Has()", t)
+		return -1
+	}
+	key := ""
+	for i, arg := range pairs {
+		if 0 == i & 1 {
+			if ! o.HasType("string", arg, "Type of key arg to Has()", t) {
+				return -1
+			}
+			key = arg.(string)
+		} else {
+			got := o.Element(gotAny, key, t)
+			if ! o.Is(arg, got, desc + ": " + key, t) {
+				fails += 1
+			}
+		}
+	}
+	return fails
+}
+
+// Lacks() takes a list of key strings (each of which can contain multiple
+// names separated by ".") and an arbitrary value. Element() is used to verify
+// that no key leads to a scalar or to a non-zero non-scalar. For each key
+// where Element() does not return 'nil', a test failure is logged. Lacks()
+// returns the number of failures.
+//
+//      got := GetConfig() // Get something to test
+//      tutl.Lacks(got, "No security overrides", t,
+//          "Override", "Auth.Key", "Cert.Insecure")
+//
+func Lacks(t TestingT, desc string, got any, keys ...string) int {
+	t.Helper()
+	return Default.Lacks(t, desc, got, keys...)
+}
+
+// See tutl.Lacks() for documentation.
+func (o Options) Lacks(t TestingT, desc string, got any, keys ...string) int {
+	t.Helper()
+	fails := 0
+	for _, key := range keys {
+		if ! o.Is(nil, o.Element(got, key, t), desc + ": " + key, t) {
+			fails++
+		}
+	}
+	return fails
 }
 
 // Circa() tests that the 2nd and 3rd arguments are approximately equal to
