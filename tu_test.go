@@ -25,8 +25,10 @@ func TestOptions(t *testing.T) {
 	o.Is(o.Rune('\r'), u.Rune('\r'), "o.Rune")
 	o.Is(o.Char('\n'), u.Char('\n'), "o.Char")
 
+	o.Is("one\n....two", u.ReplaceNewlines("one\ntwo"), "u.replace f")
 	u.EscapeNewline(true)
 	defer u.EscapeNewline(false)
+	o.Is("one\\ntwo", u.ReplaceNewlines("one\ntwo"), "u.replace t")
 	p := u.New(t)
 	u.Is("\"\\n\"", u.S("\n"), "u escapes", t)
 	u.Is("\"\\n\"", p.S("\n"), "p inherits", t)
@@ -82,6 +84,11 @@ func TestS(t *testing.T) {
 	u.Is("1.23456789012", 1.234567890123456789, "0dig f64", t)
 	u.Circa(3, 1.23456, 1.234567, "u.circa", t)
 
+	u.IsNot("one", "two", "u.not", t)
+	typed := u.TestingT(u.New(t))
+	u.HasType("tutl.TUTL", typed, "underlying u.type", t)
+	u.HasType("*tutl.TestingT", &typed, "interface u.type", t)
+	u.Is("u.panic", u.GetPanic(func() { panic("u.panic") }), "u.panic", t)
 
 	u.Is(`>"hi"`, u.S(">", []byte("hi")), `"hi" []byte`, t)
 	u.Is(`>"Oops"`, u.S(">", fmt.Errorf("Oops")), `"Oops" error`, t)
@@ -166,9 +173,7 @@ func (m *mock) isOutput(desc string, t *testing.T, want ...string) {
 	t.Helper()
 	if u.Is(len(want), len(m.output), desc+" count", t) {
 		for i, o := range want {
-			if strings.HasSuffix(m.output[i], "\n") {
-				m.output[i] = m.output[i][:len(m.output[i])-1]
-			}
+			m.output[i] = strings.TrimSuffix(m.output[i], "\n")
 			u.Is(o, m.output[i], u.S(desc, " ", i), t)
 		}
 	} else {
@@ -228,6 +233,12 @@ func TestOutput(t *testing.T) {
 			"Got \"nil\" not \"os.File\" for not type.")
 	}
 
+	s.Is(true, s.IsNot("one", "two", "s.not"), "not")
+	m.isOutput("not, no output", t)
+	s.Is(false, s.IsNot("one", "one", "s.not"), "not")
+	m.isOutput("not output", t,
+		`Got unwanted "one" for s.not.`)
+
 	s.Is(true, s.Circa(3, 1.23456, 1.234567, "s.circa"), "circa")
 	m.isOutput("circa, no output", t)
 	s.Is(false, s.Circa(3, 1.23456, 1.2356, "s.circa"), "circa")
@@ -244,19 +255,19 @@ func TestOutput(t *testing.T) {
 
 	u.Is(2, s.Like("", "empty", "*M", "*T"), "all fail for empty", t)
 	m.likeOutput("empty string out", t,
-		"*no string ", " Like[(][)]", "* got empty string.")
+		"*no string ", " Like[(][)]", "* got empty string ")
 
 	u.Is(2, s.Like(error(nil), "no err", "*M", "*T"), "all fail for nil err", t)
 	m.likeOutput("empty string out", t,
-		"*no string ", " Like[(][)]", "* got nil.")
+		"*no string ", " Like[(][)]", "* got nil ")
 
 	u.Is(2, s.Like(nil, "nil", "*M", "*T"), "all fail for nil interface", t)
 	m.likeOutput("empty string out", t,
-		"*no string ", " Like[(][)]", "* got nil.")
+		"*no string ", " Like[(][)]", "* got nil ")
 
 	u.Is(2, s.Like(fmt.Errorf(""), `""`, "*M", "*T"), `all fail for ""`, t)
 	m.likeOutput(`became "" out`, t,
-		"*no string ", " Like[(][)]", "* got blank.")
+		"*no string ", " Like[(][)]", "* got blank ")
 
 	u.Is(0, s.Like("hello", "hello", "l{2,}", "*LL"), "0 for pass", t)
 	if !u.Is(0, len(m.output), "no output for success", t) {
