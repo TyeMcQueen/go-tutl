@@ -37,7 +37,7 @@ func die(format string, args ...any) {
 //          // ...
 //          if path := os.Getenv("CPU_PROFILE"); "" != path {
 //              go tutl.ShowStackTraceOnInterrupt(false)
-//              defer profile.ProfieCPU(path)()
+//              defer profile.ProfileCPU(path)()
 //          }
 //          // ...
 //      }
@@ -71,7 +71,7 @@ func ProfileCPU(file string) func() {
 //          // ...
 //          if path := os.Getenv("BLOCK_PROFILE"); "" != path {
 //              go tutl.ShowStackTraceOnInterrupt(false)
-//              defer profile.ProfieBlockings(path)()
+//              defer profile.ProfileBlockings(path)()
 //          }
 //          // ...
 //      }

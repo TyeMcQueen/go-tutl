@@ -1,7 +1,7 @@
 # go-tutl
 
 go-tutl is a Tiny Unit Testing Library (for Go).  "Tutl" is also the
-Faroese word for "whisper", a nod to it's light-weight nature.
+Faroese word for "whisper", a nod to it's original light-weight nature.
 
 TUTL provides a few helper routines that make simple unit testing in Go
 much easier and that encourage you to write tests that, when they fail,
@@ -20,7 +20,6 @@ Example usage:
         "testing"
 
         u "github.com/TyeMcQueen/go-tutl"
-        _ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.
     )
 
     func TestDur(t *testing.T) {
@@ -37,7 +36,7 @@ Example usage:
 
 Sample output from a failing run of the above tests:
 
-    dur_test.go:10: Got "1m 61s" not "1m 1s" for 61.
+    dur_test.go:10: Got ‟1m 61s” not ‟1m 1s” for 61.
     dur_test.go:14: Got 3600 not 3605 for '1h 5s'.
     dur_test.go:17:
         Not like /(Unknown|Invalid) unit/...
