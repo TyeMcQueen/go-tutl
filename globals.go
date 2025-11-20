@@ -139,10 +139,14 @@ func (o Options) V(v any) string {
 	return fmt.Sprint(v)
 }
 
-// DoubleQuote() returns the string enclosed in double quotes and with
-// contained \ and " characters escaped.
+// DoubleQuote() returns the string enclosed in ‟ and ”, or, if the string
+// contains either of those characters, then it will enclose it in double
+// quotes (") and with contained \ and " characters escaped (preceeded by \).
 //
 func DoubleQuote(s string) string {
+	if ! strings.ContainsAny(s, "‟”") {
+		return "‟" + s + "”"
+	}
 	s = strings.Replace(s, "\\", "\\\\", -1)
 	s = strings.Replace(s, "\"", "\\\"", -1)
 	return fmt.Sprintf("\"%s\"", s)
@@ -351,13 +355,13 @@ func GetPanic(run func()) (failure any) {
 // (if you want spaces, it is easy for you to add them).  S() puts single
 // quotes around 'byte' (and 'uint8') values.  S() treats '[]byte' values
 // like 'string's.  S() puts double quotes around '[]byte' and 'error' values
-// (escaping enclosed " and \ characters).
+// [see DoubleQuote()].
 //
 // S() escapes control characters except for newlines [but see
 // EscapeNewline()].  S() also escapes non-UTF-8 byte sequences.
 //
 // If S() is passed a single argument that is a 'string', then it will put
-// double quotes around it and escape any contained " and \ characters.
+// double quotes around it [see DoubleQuote()].
 //
 // See V() for how 'float32', 'float64', '[]float32', or '[]float64' values
 // are converted.
