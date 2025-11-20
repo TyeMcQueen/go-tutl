@@ -30,13 +30,13 @@ func TestOptions(t *testing.T) {
 	defer u.EscapeNewline(false)
 	o.Is("one\\ntwo", u.ReplaceNewlines("one\ntwo"), "u.replace t")
 	p := u.New(t)
-	u.Is("\"\\n\"", u.S("\n"), "u escapes", t)
-	u.Is("\"\\n\"", p.S("\n"), "p inherits", t)
-	u.Is("\"\n\"", o.S("\n"), "o default", t)
+	u.Is("‟\\n”", u.S("\n"), "u escapes", t)
+	u.Is("‟\\n”", p.S("\n"), "p inherits", t)
+	u.Is("‟\n”", o.S("\n"), "o default", t)
 	p.EscapeNewline(false)
-	u.Is("\"\\n\"", u.S("\n"), "u unchanged", t)
-	u.Is("\"\n\"", p.S("\n"), "p changed", t)
-	u.Is("\"\n\"", o.S("\n"), "o unchanged", t)
+	u.Is("‟\\n”", u.S("\n"), "u unchanged", t)
+	u.Is("‟\n”", p.S("\n"), "p changed", t)
+	u.Is("‟\n”", o.S("\n"), "o unchanged", t)
 }
 
 func TestS(t *testing.T) {
@@ -90,29 +90,33 @@ func TestS(t *testing.T) {
 	u.HasType("*tutl.TestingT", &typed, "interface u.type", t)
 	u.Is("u.panic", u.GetPanic(func() { panic("u.panic") }), "u.panic", t)
 
-	u.Is(`>"hi"`, u.S(">", []byte("hi")), `"hi" []byte`, t)
-	u.Is(`>"Oops"`, u.S(">", fmt.Errorf("Oops")), `"Oops" error`, t)
+	u.Is(`>‟hi”`, u.S(">", []byte("hi")), `"hi" []byte`, t)
+	u.Is(`>‟Oops”`, u.S(">", fmt.Errorf("Oops")), `"Oops" error`, t)
 	u.Is(`>str`, u.S(">", "str"), `not alone "str" string is not quoted`, t)
-	u.Is(`"str"`, u.S("str"), `lonely "str" string is quoted`, t)
+	u.Is(`‟str”`, u.S("str"), `lonely "str" string is quoted`, t)
 
-	u.Is(`>"\"h\\i\""`, u.S(">", []byte(`"h\i"`)), "`\"h\\i\"` []byte", t)
-	u.Is(`>"\"\\"`, u.S(">", fmt.Errorf(`"\`)), "`\"\\` error", t)
-	u.Is(`"\\\""`, u.S(`\"`), "lonely `\"` string is quoted", t)
+	u.Is(`>‟"h\i"”`, u.S(">", []byte(`"h\i"`)), "`\"h\\i\"` []byte", t)
+	u.Is(`>"‟h\\i”"`, u.S(">", []byte(`‟h\i”`)), "`‟h\\i”` []byte", t)
+	u.Is(`>"‟h\\i”"`, u.S(">", []byte(`‟h\i”`)), "`‟h\\i”` []byte", t)
+	u.Is(`>‟"\”`, u.S(">", fmt.Errorf(`"\`)), "`\"\\` error", t)
+	u.Is(`>"\"\\”"`, u.S(">", fmt.Errorf(`"\”`)), "`\"\\”` error", t)
+	u.Is(`‟\"”`, u.S(`\"`), "lonely `\"` string is quoted", t)
+	u.Is(`"‟\\\""`, u.S(`‟\"`), "lonely `‟\"` string is quoted", t)
 
 	u.Is("'x'", u.S("x"[0]), "S 'x' byte", t)
 	u.Is("'\\x00'", u.S(byte(0)), "S 0 byte", t)
 	u.Is("'\\n'", u.S("\n"[0]), "S '\n' byte is escaped", t)
 	u.Is(`'\xFF'`, u.S(byte(0xFF)), "S '\xFF' byte is escaped", t)
 
-	u.Is(`"\u009B"`, u.S("\u009B"), "S \u009B string is escaped", t)
-	u.Is("\"\u00FF\"", u.S("\u00FF"), "S \u00FF string is not escaped", t)
-	u.Is(`"\xFF"`, u.S("\xFF"), "S \xFF string is escaped", t)
+	u.Is(`‟\u009B”`, u.S("\u009B"), "S \u009B string is escaped", t)
+	u.Is("‟\u00FF”", u.S("\u00FF"), "S \u00FF string is not escaped", t)
+	u.Is(`‟\xFF”`, u.S("\xFF"), "S \xFF string is escaped", t)
 
 	u.Is(1, len(u.V("\n")), "V no esc lf string", t)
 	u.Is(`'\n'`, u.S("\n"[0]), "S esc lf byte", t)
-	u.Is("\"\n\"", u.S("\n"), "S default no esc lf string", t)
+	u.Is("‟\n”", u.S("\n"), "S default no esc lf string", t)
 	u.EscapeNewline(true)
-	u.Is(`"\n"`, u.S("\n"), "S requested esc lf string", t)
+	u.Is(`‟\n”`, u.S("\n"), "S requested esc lf string", t)
 	u.EscapeNewline(false)
 
 	u.Is("AB", u.S("A", "B"), "simple concat", t)
@@ -203,20 +207,20 @@ func TestOutput(t *testing.T) {
 
 	s.Is("longish stuff", "longer stuff", "were stuff longer or longish")
 	m.isOutput("longish out", t,
-		"\n"+`Got "longer stuff" not "longish stuff" for `+
+		"\n"+`Got ‟longer stuff” not ‟longish stuff” for `+
 			`were stuff longer or longish.`)
 
 	s.Is("longish stuff", "longer stuffy", "were stuff longer or longish")
 	m.isOutput("longer out", t,
-		"\nGot \"longer stuffy\""+
-			"\nnot \"longish stuff\""+
+		"\nGot ‟longer stuffy”"+
+			"\nnot ‟longish stuff”"+
 			"\nfor were stuff longer or longish.")
 
 	s.Is("two\nlines", "one line", "multi-line")
 	m.isOutput("longer out", t,
-		"\nGot \"one line\""+
-			"\nnot \"two"+
-			"\n....lines\""+
+		"\nGot ‟one line”"+
+			"\nnot ‟two"+
+			"\n....lines”"+
 			"\nfor multi-line.")
 
 	if h, err := os.Open("go.mod"); err != nil {
@@ -230,20 +234,20 @@ func TestOutput(t *testing.T) {
 		m.isOutput("hastype, no output", t)
 		u.Is(false, s.HasType("os.File", got, "not type"), "hastype fail", t)
 		m.isOutput("hastype output", t,
-			"Got \"nil\" not \"os.File\" for not type.")
+			"Got ‟nil” not ‟os.File” for not type.")
 	}
 
 	s.Is(true, s.IsNot("one", "two", "s.not"), "not")
 	m.isOutput("not, no output", t)
 	s.Is(false, s.IsNot("one", "one", "s.not"), "not")
 	m.isOutput("not output", t,
-		`Got unwanted "one" for s.not.`)
+		`Got unwanted ‟one” for s.not.`)
 
 	s.Is(true, s.Circa(3, 1.23456, 1.234567, "s.circa"), "circa")
 	m.isOutput("circa, no output", t)
 	s.Is(false, s.Circa(3, 1.23456, 1.2356, "s.circa"), "circa")
 	m.isOutput("circa output", t,
-		`Got "1.24" not "1.23" for s.circa.`)
+		`Got ‟1.24” not ‟1.23” for s.circa.`)
 
 	u.Is(1, s.Like("", "description"), "1 failure if like no strings", t)
 	m.likeOutput("like no strings", t,
@@ -308,7 +312,7 @@ func TestOutput(t *testing.T) {
 
 	u.Is(false, s.Is("hi\n", "high\n", "newlines"), "false newlines", t)
 	m.isOutput("newlines out", t,
-		"\nGot \"high\n....\"\nnot \"hi\n....\"\nfor newlines.")
+		"\nGot ‟high\n....”\nnot ‟hi\n....”\nfor newlines.")
 
 	u.Is(2, s.Like("hi\n", "like lf", "*high", "Hi"), "2 of 2 newlines", t)
 	m.isOutput("newlines out", t,
