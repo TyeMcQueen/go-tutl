@@ -13,6 +13,7 @@ var atInterrupt = make([]func(), 0, 16)
 var aiMu sync.Mutex
 var running = 0
 var skip = true
+var _sigs = make(chan os.Signal, 1)
 
 // If you have a TestMain() function, then you can add
 //
@@ -40,9 +41,8 @@ func ShowStackOnInterrupt(show ...bool) {
 	running++
 	aiMu.Unlock()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT)
-	_ = <-sig
+	signal.Notify(_sigs, syscall.SIGINT)
+	got := <-_sigs
 
 	aiMu.Lock()
 	// Make a reversed copy of the atInterrupt slice:
@@ -61,8 +61,10 @@ func ShowStackOnInterrupt(show ...bool) {
 		fmt.Fprintln(os.Stderr, "Interrupted.")
 		os.Exit(1)
 	}
-	debug.SetTraceback("all")
-	panic("Interrupted")
+	if got == syscall.SIGINT {
+		debug.SetTraceback("all")
+		panic("Interrupted")
+	}
 }
 
 // AtInterrupt registers a function to be called if the test run is
