@@ -631,7 +631,7 @@ func (o Options) oneElement(value any, subkey, key string, t TestingT) any {
 		return ret.Interface()
 	} else if reflect.Struct == refVal.Kind() {
 		ret := refVal.FieldByName(subkey)
-		desc := S("Element(): No '", subkey, "'")
+		desc := S("Element(): No '", subkey, "' in struct")
 		if key != "" {
 			desc = S(desc, " field (key=", key, ")")
 		}
@@ -679,6 +679,7 @@ func (o Options) Covers(
 func (o Options) oneCover(
 	wantMap Map, gotAny any, desc, prefix string, t TestingT,
 ) int {
+	t.Helper()
 	fails := 0
 	for key, want := range wantMap {
 		got := o.Element(gotAny, key, t)
