@@ -1,5 +1,5 @@
 // This is just a sample program that uses ShowStackOnInterrupt() and
-// AtInterrupt().  It is used by int_test.go to check for data races
+// AtInterrupt(). It is used by int_test.go to check for data races
 // and to verify the basic functionality of those two functions.
 
 package main

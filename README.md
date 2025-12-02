@@ -1,6 +1,6 @@
 # go-tutl
 
-go-tutl is a Tiny Unit Testing Library (for Go).  "Tutl" is also the
+go-tutl is a Tiny Unit Testing Library (for Go). "Tutl" is also the
 Faroese word for "whisper", a nod to it's original light-weight nature.
 
 TUTL provides a few helper routines that make simple unit testing in Go
@@ -8,9 +8,9 @@ much easier and that encourage you to write tests that, when they fail,
 it is easy to figure out what broke.
 
 It started as the 2 small functions that I have felt worth writing every
-time I needed to do unit tests in Go, Is() and S().  Plus 2 other small
+time I needed to do unit tests in Go, Is() and S(). Plus 2 other small
 functions that I usually eventually end up writing when I get further
-along with a project, Like() and ShowStackOnInterrupt().  And it has been
+along with a project, Like() and ShowStackOnInterrupt(). And it has been
 collecting small improvements over the years.
 
 Example usage:
@@ -45,7 +45,7 @@ Sample output from a failing run of the above tests:
         "> for Error from '3 fortnight'.
 
 It also provides a special module to deal with infinite loops in your
-code.  If you include:
+code. If you include:
 
     import (
         _ "github.com/TyeMcQueen/go-tutl/hang" // ^C gives stack dumps.

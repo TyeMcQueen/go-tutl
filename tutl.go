@@ -1,6 +1,6 @@
 /*
 
-go-tutl is a Trivial Unit Testing Library (for Go).  Example usage:
+go-tutl is a Trivial Unit Testing Library (for Go). Example usage:
 
 	package duration
 	import (
@@ -42,7 +42,7 @@ type Map = map[string]any
 type LiteralYaml string
 
 // TestingT is an interface covering the methods of '*testing.T' that TUTL
-// uses.  This makes it easier to test this test library.
+// uses. This makes it easier to test this test library.
 //
 type TestingT interface {
 	Helper()
@@ -101,10 +101,10 @@ type TUTL struct {
 	o Options
 }
 
-// A unit test can have a huge number of calls to Is().  Having to remember
-// to pass in the *testing.T argument can be inconvenient.  TUTL offers an
+// A unit test can have a huge number of calls to Is(). Having to remember
+// to pass in the *testing.T argument can be inconvenient. TUTL offers an
 // alternate calling method that replaces the huge number of such extra
-// arguments with a single line of code.  This example code:
+// arguments with a single line of code. This example code:
 //
 //      import (
 //          "testing"
@@ -134,7 +134,7 @@ type TUTL struct {
 //      }
 //
 // Whether to use an import alias or New() (or neither) is mostly a personal
-// preference.  Though, using New() also limits the scope of EscapeNewline()
+// preference. Though, using New() also limits the scope of EscapeNewline()
 // and other options.
 //
 // New() also copies the current settings from the global 'tutl.Default' into
@@ -343,7 +343,7 @@ func (u TUTL) Char(c byte) string {
 }
 
 // GetPanic() calls the passed-in function and returns 'nil' or the argument
-// that gets passed to panic() from within it.  This can be used in other
+// that gets passed to panic() from within it. This can be used in other
 // test functions, for example:
 //
 //      u.Is(nil, u.GetPanic(func(){ obj.Method(nil) }), "Method panic")

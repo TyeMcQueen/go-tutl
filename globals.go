@@ -25,7 +25,7 @@ const(
 	SilentFix = 'S'
 )
 
-// Options contains user preference options.  The 'tutl.Default' global
+// Options contains user preference options. The 'tutl.Default' global
 // is the Options used unless you make a copy of it and use the copy.
 //
 // Calling tutl.New(t) associates such a copy with the returned object so
@@ -54,7 +54,7 @@ type Options struct {
 	WhenFixed BrokenFix
 
 	// LineWidth influences when "Got {got} not {want} for {title}" output
-	// gets split onto multiple lines instead.  If that string is longer
+	// gets split onto multiple lines instead. If that string is longer
 	// than LineWidth, then it gets split into "Got ...\nnot ...\n...".
 	//
 	// This also happens if you aren't escaping newlines and either value
@@ -69,17 +69,17 @@ type Options struct {
 
 	// PathLength is the maximum expected length of the path to the
 	// *_test.go file being run plus the line number that 'go test'
-	// prepends to each diagnostic.  It defaults to 20.
+	// prepends to each diagnostic. It defaults to 20.
 	//
 	PathLength int
 
 	// Digits32 specifies how many significant digits to use when comparing
-	// 'float32' values.  In particular, if a 'float32' or '[]float32' value
+	// 'float32' values. In particular, if a 'float32' or '[]float32' value
 	// is passed to V(), then no more than Digits32 significant digits are
-	// used in the resulting string.  Other data structures that contain
+	// used in the resulting string. Other data structures that contain
 	// 'float32' values are not impacted.
 	//
-	// If Digits32 is 0, then the default value of 5 is used.  If Digits32
+	// If Digits32 is 0, then the default value of 5 is used. If Digits32
 	// is negative or more than 7, then 'fmt.Sprint()' is used which may
 	// use even 8 digits for some values (such as 1/3) so that 2 'float32'
 	// values that are even very slightly different will produce different
@@ -88,12 +88,12 @@ type Options struct {
 	Digits32 int
 
 	// Digits64 specifies how many significant digits to use when comparing
-	// 'float64' values.  In particular, if a 'float64' or '[]float64' value
+	// 'float64' values. In particular, if a 'float64' or '[]float64' value
 	// is passed to V(), then no more than Digits64 significant digits are
-	// used in the resulting string.  Other data structures that contain
+	// used in the resulting string. Other data structures that contain
 	// 'float64' values are not impacted.
 	//
-	// If Digits64 is 0, then the default value of 12 is used.  If Digits64
+	// If Digits64 is 0, then the default value of 12 is used. If Digits64
 	// is negative or more than 16, then 'fmt.Sprint()' is used which may
 	// use up to 16 digits so that 2 'float64' values that are even very
 	// slightly different will produce different strings (a 'float64' is
@@ -111,8 +111,8 @@ const MaxDigits64 = 15
 var Default = Options{
 	doNotEscape: '\n', LineWidth: 72, PathLength: 20, Digits32: 5, Digits64: 12}
 
-// V() just converts a value to a string.  It is similar to 'fmt.Sprint(v)'.
-// But it treats '[]byte' values as 'string's.  It also (by default) uses
+// V() just converts a value to a string. It is similar to 'fmt.Sprint(v)'.
+// But it treats '[]byte' values as 'string's. It also (by default) uses
 // fewer significant digits when converting 'float32', 'float64',
 // '[]float32', and '[]float64' values (see Options for details).
 //
@@ -120,7 +120,7 @@ func V(v any) string {
 	return Default.V(v)
 }
 
-// See tutl.V() for documentation.
+// See the global tutl.V() for documentation.
 func (o Options) V(v any) string {
 	switch t := v.(type) {
 	case string:
@@ -179,7 +179,7 @@ func DoubleQuote(s string) string {
 //
 func ReplaceNewlines(s string) string { return Default.ReplaceNewlines(s) }
 
-// See tutl.ReplaceNewlines() for documentation.
+// See the global tutl.ReplaceNewlines() for documentation.
 func (o *Options) ReplaceNewlines(s string) string {
 	if '\n' == o.doNotEscape {
 		return strings.Replace(s, "\n", "\n....", -1)
@@ -187,12 +187,12 @@ func (o *Options) ReplaceNewlines(s string) string {
 	return strings.Replace(s, "\n", "\\n", -1)
 }
 
-// After calling EscapeNewline(true), S() will escape '\n' characters.  You
+// After calling EscapeNewline(true), S() will escape '\n' characters. You
 // can call EscapeNewline(false) to restore the default behavior.
 //
 func EscapeNewline(b bool) { Default.EscapeNewline(b) }
 
-// See tutl.EscapeNewline() for documentation.
+// See the global tutl.EscapeNewline() for documentation.
 func (o *Options) EscapeNewline(b bool) {
 	if b {
 		o.doNotEscape = ' '
@@ -293,16 +293,16 @@ func IfFixed(bf BrokenFix) {
 	Default.IfFixed(bf)
 }
 
-// See the global tutle.IfFixed() for documentation.
+// See the global tutl.IfFixed() for documentation.
 func (o *Options) IfFixed(bf BrokenFix) {
 	o.WhenFixed = bf
 }
 
 // Escape() returns a string containing the passed-in rune, unless it is a
-// control character.  Runes '\n', '\r', and '\t' each return a 2-character
-// string (\n, \r, or \t).  Other 7-bit control characters are turned into
-// strings like \x1B.  The 8-bit control characters are turned into strings
-// like \u009B.  EscapeNewline(false) does not affect Escape().
+// control character. Runes '\n', '\r', and '\t' each return a 2-character
+// string (\n, \r, or \t). Other 7-bit control characters are turned into
+// strings like \x1B. The 8-bit control characters are turned into strings
+// like \u009B. EscapeNewline(false) does not affect Escape().
 //
 func Escape(r rune) string {
 	switch r {
@@ -446,7 +446,7 @@ func (o Options) ListToJson(t TestingT, args ...any) []byte {
 }
 
 // GetPanic() calls the passed-in function and returns 'nil' or the argument
-// that gets passed to panic() from within it.  This can be used in other
+// that gets passed to panic() from within it. This can be used in other
 // test functions, for example:
 //
 //      u := tutl.New(t)
@@ -461,15 +461,15 @@ func GetPanic(run func()) (failure any) {
 }
 
 // S() returns a single string composed by converting each argument into
-// a string and concatenating all of those strings.  It is similar to but not
-// identical to 'fmt.Sprint()'.  S() never inserts spaces between your values
-// (if you want spaces, it is easy for you to add them).  S() puts single
-// quotes around 'byte' (and 'uint8') values.  S() treats '[]byte' values
-// like 'string's.  S() puts double quotes around '[]byte' and 'error' values
+// a string and concatenating all of those strings. It is similar to but not
+// identical to 'fmt.Sprint()'. S() never inserts spaces between your values
+// (if you want spaces, it is easy for you to add them). S() puts single
+// quotes around 'byte' (and 'uint8') values. S() treats '[]byte' values
+// like 'string's. S() puts double quotes around '[]byte' and 'error' values
 // [see DoubleQuote()].
 //
 // S() escapes control characters except for newlines [but see
-// EscapeNewline()].  S() also escapes non-UTF-8 byte sequences.
+// EscapeNewline()]. S() also escapes non-UTF-8 byte sequences.
 //
 // If S() is passed a single argument that is a 'string', then it will put
 // double quotes around it [see DoubleQuote()].
@@ -485,7 +485,7 @@ func S(vs ...any) string {
 	return Default.S(vs...)
 }
 
-// See tutl.S() for documentation.
+// See the global tutl.S() for documentation.
 func (o Options) S(vs ...any) string {
 	ss := make([]string, len(vs))
 	for j, ix := range vs {
@@ -524,7 +524,7 @@ func (o Options) S(vs ...any) string {
 }
 
 // Is() tests that the first two arguments are converted to the same string
-// by V().  If they are not, then a diagnostic is displayed which also causes
+// by V(). If they are not, then a diagnostic is displayed which also causes
 // the unit test to fail.
 //
 // The diagnostic is similar to "Got {got} not {want} for {desc}.\n" except
@@ -534,7 +534,7 @@ func (o Options) S(vs ...any) string {
 //
 // Note that you pass 'want' before 'got' when calling Is() because the
 // 'want' value is often a simple constant while 'got' can be a complex
-// call and code is easier to read if you put shorter things first.  But
+// call and code is easier to read if you put shorter things first. But
 // the output shows 'got' before 'want' as "Got X not Y" is the shortest
 // way to express that concept in English.
 //
@@ -558,7 +558,7 @@ func (o Options) ifFixed(desc string, t TestingT) bool {
 	return true
 }
 
-// See tutl.Is() for documentation.
+// See the global tutl.Is() for documentation.
 func (o Options) Is(want, got any, desc string, t TestingT) bool {
 	t.Helper()
 	vwant := o.V(want)
@@ -596,8 +596,8 @@ func (o Options) Is(want, got any, desc string, t TestingT) bool {
 }
 
 // IsNot() tests that the first two arguments are converted to different
-// strings by V().  If they are not, then a diagnostic is displayed which
-// also causes the unit test to fail.  The diagnostic is similar to
+// strings by V(). If they are not, then a diagnostic is displayed which
+// also causes the unit test to fail. The diagnostic is similar to
 // "Got unwanted {got} for {desc}.\n" except that S() is used for 'got' so
 // control characters will be escaped and their values may be in quotes.
 //
@@ -609,7 +609,7 @@ func IsNot(hate, got any, desc string, t TestingT) bool {
 	return Default.IsNot(hate, got, desc, t)
 }
 
-// See tutl.IsNot() for documentation.
+// See the global tutl.IsNot() for documentation.
 func (o Options) IsNot(hate, got any, desc string, t TestingT) bool {
 	t.Helper()
 	vhate := o.V(hate)
@@ -629,15 +629,15 @@ func (o Options) IsNot(hate, got any, desc string, t TestingT) bool {
 }
 
 // HasType() tests that the type of the 2nd argument ('got') is equal to the
-// first argument ('want', a string).  That is, it checks that
-// 'want == fmt.Sprintf("%T", got)'.  If not, then a diagnostic is displayed
+// first argument ('want', a string). That is, it checks that
+// 'want == fmt.Sprintf("%T", got)'. If not, then a diagnostic is displayed
 // which also causes the unit test to fail.
 //
 // The diagnostic is similar to "Got {got} not {want} for {desc}.\n" where
 // '{got}' is the data type of 'got' and '{want}' is just the 'want' string.
 //
 // If 'got' is an 'interface' type, then the type string will be the type of
-// the underlying object (or "nil").  If you actually wish to compare the
+// the underlying object (or "nil"). If you actually wish to compare the
 // 'interface' type, then place '&' before 'got' and prepend "*" to 'want':
 //
 //      got := GetReader() // Returns io.Reader interface to an *os.File
@@ -653,7 +653,7 @@ func HasType(want string, got any, desc string, t TestingT) bool {
 	return Default.HasType(want, got, desc, t)
 }
 
-// See tutl.HasType() for documentation.
+// See the global tutl.HasType() for documentation.
 func (o Options) HasType(
 	want string, got any, desc string, t TestingT,
 ) bool {
@@ -679,7 +679,7 @@ func ToMap(value any, t TestingT) Map {
 	return Default.ToMap(value, t)
 }
 
-// See tutl.ToMap() for documentation.
+// See the global tutl.ToMap() for documentation.
 func (o Options) ToMap(value any, t TestingT) (retMap Map) {
 	t.Helper()
 	var js []byte
@@ -734,7 +734,7 @@ func Element(value any, key string, t TestingT) any {
 	return Default.Element(value, key, t)
 }
 
-// See tutl.Element() for documentation.
+// See the global tutl.Element() for documentation.
 func (o Options) Element(value any, key string, t TestingT) any {
 	t.Helper()
 	if ! strings.HasPrefix(key, ".") {
@@ -801,7 +801,7 @@ func Covers(want any, got any, desc string, t TestingT) int {
 	return Default.Covers(want, got, desc, t)
 }
 
-// See tutl.Covers() for documentation.
+// See the global tutl.Covers() for documentation.
 func (o Options) Covers(
 	want any, got any, desc string, t TestingT,
 ) (fails int) {
@@ -859,7 +859,7 @@ func Has(t TestingT, desc string, got any, pairs ...any) int {
 	return Default.Has(t, desc, got, pairs...)
 }
 
-// See tutl.Has() for documentation.
+// See the global tutl.Has() for documentation.
 func (o Options) Has(t TestingT, desc string, gotAny any, pairs ...any) int {
 	t.Helper()
 	fails := 0
@@ -899,7 +899,7 @@ func Lacks(t TestingT, desc string, got any, keys ...string) int {
 	return Default.Lacks(t, desc, got, keys...)
 }
 
-// See tutl.Lacks() for documentation.
+// See the global tutl.Lacks() for documentation.
 func (o Options) Lacks(t TestingT, desc string, got any, keys ...string) int {
 	t.Helper()
 	fails := 0
@@ -912,14 +912,14 @@ func (o Options) Lacks(t TestingT, desc string, got any, keys ...string) int {
 }
 
 // Circa() tests that the 2nd and 3rd arguments are approximately equal to
-// each other.  If they are not, then a diagnostic is displayed which also
+// each other. If they are not, then a diagnostic is displayed which also
 // causes the unit test to fail.
 //
 // The diagnostic is similar to "Got {got} not {want} for {desc}.\n" where
 // 'want' and 'got' are shown formatted via 'fmt.Sprintf("%.*g", digits, v)'.
 // They are considered equal if that formatting produces the same string
-// for both values.  That is, 'want' and 'got' are considered roughly equal
-// if they are the same to 'digits' significant digits.  Passing 'digits' as
+// for both values. That is, 'want' and 'got' are considered roughly equal
+// if they are the same to 'digits' significant digits. Passing 'digits' as
 // less than 1 or more than 15 is not useful.
 //
 // Circa() returns whether the test passed, which is useful for skipping
@@ -931,7 +931,7 @@ func Circa(digits int, want, got float64, desc string, t TestingT) bool {
 	return Default.Circa(digits, want, got, desc, t)
 }
 
-// See tutl.Circa() for documentation.
+// See the global tutl.Circa() for documentation.
 func (o Options) Circa(
 	digits int, want, got float64, desc string, t TestingT,
 ) bool {
@@ -942,19 +942,19 @@ func (o Options) Circa(
 }
 
 // Like() is most often used to test error messages (or other complex
-// strings).  It lets you perform multiple tests against a single value.
+// strings). It lets you perform multiple tests against a single value.
 // Each test checks that the value converts into a string that either
 // contains a specific sub-string (ignoring letter case) or that it matches
-// a regular expression.  You must pass at least one string to be matched.
+// a regular expression. You must pass at least one string to be matched.
 //
 // Strings that start with "*" have the "*" stripped before a substring match
-// is performed (ignoring letter case).  If a string does not start with a
+// is performed (ignoring letter case). If a string does not start with a
 // "*", then it must be a valid regular expression that will be matched
 // against the value's string representation.
 //
 // Except that strings that start with "!" have that stripped before checking
-// for a subsequent "*".  The "!" negates the match so that the test will
-// only pass if the string does not match.  To specify a regular expression
+// for a subsequent "*". The "!" negates the match so that the test will
+// only pass if the string does not match. To specify a regular expression
 // that starts with a "!" character, simply escape it as `\!` or "[!]".
 //
 // Like() returns the number of matches that failed.
@@ -969,7 +969,7 @@ func Like(got any, desc string, t TestingT, match ...string) int {
 	return Default.Like(got, desc, t, match...)
 }
 
-// See tutl.Like() for documentation.
+// See the global tutl.Like() for documentation.
 func (o Options) Like(
 	got any, desc string, t TestingT, match ...string,
 ) int {

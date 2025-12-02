@@ -20,7 +20,7 @@ var _sigs = make(chan os.Signal, 1)
 //      go tutl.ShowStackOnInterrupt()
 //
 // to it to allow you to interrupt it (such as via typing Ctrl-C) in order
-// to see stack traces of everything that is running.  This is particularly
+// to see stack traces of everything that is running. This is particularly
 // useful if your code has an infinite loop.
 //
 // See also "go doc github.com/TyeMcQueen/go-tutl/hang".
@@ -69,10 +69,10 @@ func ShowStackOnInterrupt(show ...bool) {
 
 // AtInterrupt registers a function to be called if the test run is
 // interrupted (by the user typing Ctrl-C or whatever sends SIGINT).
-// The function registered first is run last.  You must have called
+// The function registered first is run last. You must have called
 // ShowStackOnInterrupt() or AtInterrupt() will do nothing useful.
 //
-// The function passed in is also returned.  This can be useful for
+// The function passed in is also returned. This can be useful for
 // clean-up code that should be run whether the test run is interrupted
 // or not:
 //

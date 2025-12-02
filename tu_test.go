@@ -41,7 +41,7 @@ func TestOptions(t *testing.T) {
 
 func TestS(t *testing.T) {
 	if u.V(true) == u.V(false) {
-		t.Fatalf("Too broken to even test itself.  true=(%s) false=(%s)\n",
+		t.Fatalf("Too broken to even test itself. true=(%s) false=(%s)\n",
 			u.V(true), u.V(false))
 	}
 	u.Is("true", true, "true", t)
