@@ -230,6 +230,46 @@ func (u TUTL) Like(got any, desc string, match ...string) int {
 	return u.o.Like(got, desc, u, match...)
 }
 
+// u.Broken() is the same as the non-method tutl.Broken() and the Options
+// method o.Broken() except that it returns a copy of the invoking TUTL
+// object (u) rather than a copy of an Options object. See the Options method
+// Broken() for more details.
+//
+// For example, you can change:
+//
+//      u.Is(0, DefaultTzOffset(), "default timezone is GMT")
+// to
+//      u.Broken().Is(0, DefaultTzOffset(), "default timezone is GMT")
+// or
+//      u.Broken(tutl.FailFix).Is(
+//          0, DefaultTzOffset(), "default timezone is GMT")
+// or
+//      b := u.Broken(tutl.SilentFix)
+//      b.Is(0, DefaultTzOffset(), "default timezone is GMT")
+//      b. ...
+//
+func (u TUTL) Broken(bf... BrokenFix) TUTL {
+	cp := u
+	cp.o = cp.o.Broken(bf...)
+	return cp
+}
+
+// u.BrokenIf(isBroken, ...) returns 'u' if 'isBroken' is 'false' but
+// returns u.Broken(...) if 'isBroken' is 'true'.
+//
+func (u TUTL) BrokenIf(isBroken bool, bf... BrokenFix) TUTL {
+	if ! isBroken {
+		return u
+	}
+	return u.Broken(bf...)
+}
+
+// Same as the non-method tutl.IfFixed().
+//
+func (u *TUTL) IfFixed(bf BrokenFix) {
+	u.o.IfFixed(bf)
+}
+
 // Same as the non-method tutl.S() except that it honors the option settings
 // of the invoking TUTL object, not of the 'tutl.Default' global.
 //

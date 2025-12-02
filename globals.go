@@ -12,6 +12,19 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// How to behave when a Broken() test case is found to be fixed.
+type BrokenFix byte
+const(
+	// NotBroken means test cases are not known to be broken (normal).
+	NotBroken BrokenFix = 0
+	// LogFix just logs a known-broken but fixed case as "FIXED!".
+	LogFix    = 'L'
+	// FailFix also fails the test run if a fixed case is still marked Broken.
+	FailFix   = 'F'
+	// SilentFix ignores fixed cases that are still marked Broken.
+	SilentFix = 'S'
+)
+
 // Options contains user preference options.  The 'tutl.Default' global
 // is the Options used unless you make a copy of it and use the copy.
 //
@@ -32,6 +45,13 @@ import (
 type Options struct {
 	// Gets set to '\n' to NOT escape newlines (' ' to escape newlines).
 	doNotEscape rune
+
+	// IsBroken indicates test cases are known to fail [see Broken()].
+	IsBroken BrokenFix
+
+	// WhenFixed is copied to Broken if Broken() is called with no argument.
+	// See IfFixed().
+	WhenFixed BrokenFix
 
 	// LineWidth influences when "Got {got} not {want} for {title}" output
 	// gets split onto multiple lines instead.  If that string is longer
@@ -186,6 +206,97 @@ func SetDigits64(d int) { Default.SetDigits64(d) }
 
 func (o *Options) SetDigits32(d int) { o.Digits32 = d }
 func (o *Options) SetDigits64(d int) { o.Digits64 = d }
+
+// tutl.Broken() returns a copy of the tutl.Default Options object but with
+// the IsBroken option set. With no argument, LogFix is assumed unless the
+// WhenFixed option has been changed [see IfFixed()]. For example:
+//
+//      // A broken test that we can't fix right away
+//      tutl.Broken().Is(...)
+//
+// See the TUTL method Broken() for more details.
+//
+func Broken(bf... BrokenFix) Options {
+	return Default.Broken(bf...)
+}
+
+// tutl.BrokenIf(isBroken, ...) returns tutl.Default if 'isBroken' is 'false'
+// but tutl.Default.Broken(...) if 'isBroken' is 'true'.
+//
+func BrokenIf(isBroken bool, bf... BrokenFix) *Options {
+	return Default.BrokenIf(isBroken, bf...)
+}
+
+// o.Broken() returns a copy of the invoking object but with the IsBroken
+// option set. With no arguments, the value of IsBroken will be set to LogFix
+// (unless the WhenFixed option has been changed). With an argument, the
+// IsBroken option will be set to its value.
+//
+// If you have a test case like:
+//
+//      o.Is(0, DefaultTzOffset(), "default timezone is GMT", t)
+//
+// which is failing and can't be quickly fixed, then you can mark it as a
+// known-broken test like:
+//
+//      o.Broken().Is(0, DefaultTzOffset(), "default timezone is GMT", t)
+// or
+//      o.Broken(tutl.FailFix).Is(
+//          0, DefaultTzOffset(), "default timezone is GMT", t)
+//
+// Broken() causes a failure to be logged (preceeded by "KNOWN") but to not
+// cause the test run to fail. If the test succeeds, then (for LogFix) the
+// success will be logged as just "FIXED!" (including the code line number
+// and test name) but the test run will not fail. For FailFix, the test run
+// will also fail. For SilentFix, the success is just ignored.
+//
+// Because a copy of 'o' is returned, the Broken() calls added above only
+// affect the one test. To affect more tests, you can use:
+//
+//      b := o.Broken()
+//      b.Is(0, DefaultTzOffset(), "default timezone is GMT", t)
+//      b. ...
+//
+// o.Broken(tutl.NotBroken) returns a copy of 'o' with IsBroken unset.
+//
+func (o Options) Broken(bf... BrokenFix) Options {
+	cp := o
+	if 0 < len(bf) {
+		cp.IsBroken = bf[0]
+	} else if NotBroken == o.WhenFixed {
+		cp.IsBroken = LogFix
+	} else {
+		cp.IsBroken = o.WhenFixed
+	}
+	return cp
+}
+
+// o.BrokenIf(isBroken, ...) returns 'o' if 'isBroken' is 'false' but
+// returns o.Broken(...) if 'isBroken' is 'true'.
+//
+func (o *Options) BrokenIf(isBroken bool, bf... BrokenFix) *Options {
+	if ! isBroken {
+		return o
+	}
+	cp := o.Broken(bf...)
+	return &cp
+}
+
+// IfFixed() sets the WhenFixed option (in the tutl.Default Options object).
+// It specifies a value to be assumed when a call to Broken() is made with no
+// arguments.
+//
+// However, IfFixed(tutl.NotBroken) acts the same as IfFixed(tutl.LogFix)
+// [because NotBroken is the zero value and LogFix is the default behavior].
+//
+func IfFixed(bf BrokenFix) {
+	Default.IfFixed(bf)
+}
+
+// See the global tutle.IfFixed() for documentation.
+func (o *Options) IfFixed(bf BrokenFix) {
+	o.WhenFixed = bf
+}
 
 // Escape() returns a string containing the passed-in rune, unless it is a
 // control character.  Runes '\n', '\r', and '\t' each return a 2-character
@@ -436,6 +547,17 @@ func Is(want, got any, desc string, t TestingT) bool {
 	return Default.Is(want, got, desc, t)
 }
 
+// Warns about Broken() tests that are now fixed.
+func (o Options) ifFixed(desc string, t TestingT) bool {
+	t.Helper()
+	if FailFix == o.IsBroken {
+		t.Errorf("FIXED!! %s", desc)
+	} else if LogFix == o.IsBroken {
+		t.Logf("FIXED! %s", desc)
+	}
+	return true
+}
+
 // See tutl.Is() for documentation.
 func (o Options) Is(want, got any, desc string, t TestingT) bool {
 	t.Helper()
@@ -443,7 +565,7 @@ func (o Options) Is(want, got any, desc string, t TestingT) bool {
 	vgot := o.V(got)
 	if vwant == vgot {
 		//  t.Log("want:", vwant, " got:", vgot, " for:", desc)
-		return true
+		return o.ifFixed(desc, t)
 	}
 	sGot := o.S(got)
 	sWant := o.S(want)
@@ -452,10 +574,18 @@ func (o Options) Is(want, got any, desc string, t TestingT) bool {
 	if strings.Contains(line, "\n") {
 		sGot = o.ReplaceNewlines(sGot)
 		sWant = o.ReplaceNewlines(sWant)
-		t.Errorf("\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+		if NotBroken == o.IsBroken {
+			t.Errorf("\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+		} else {
+			t.Logf("KNOWN\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+		}
 		return false
 	}
-	if wid <= o.LineWidth-o.PathLength {
+	if FailFix == o.IsBroken {
+		t.Errorf("KNOWN\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+	} else if LogFix == o.IsBroken {
+		t.Logf("KNOWN\nGot %s\nnot %s\nfor %s.", sGot, sWant, desc)
+	} else if wid <= o.LineWidth-o.PathLength {
 		t.Error(line)
 	} else if wid <= o.LineWidth {
 		t.Error("\n" + line)
@@ -486,10 +616,15 @@ func (o Options) IsNot(hate, got any, desc string, t TestingT) bool {
 	vgot := o.V(got)
 	if vhate != vgot {
 		//  t.Log("hate:", vhate, " got:", vgot, " for:", desc)
-		return true
+		return o.ifFixed(desc, t)
 	}
-	t.Error(
-		"Got unwanted " + o.ReplaceNewlines(o.S(got)) + " for " + desc + ".")
+	if NotBroken == o.IsBroken {
+		t.Error("Got unwanted " + o.ReplaceNewlines(o.S(got)) +
+			" for " + desc + ".")
+	} else {
+		t.Log("Got unwanted " + o.ReplaceNewlines(o.S(got)) +
+			" for " + desc + ".")
+	}
 	return false
 }
 
@@ -854,8 +989,14 @@ func (o Options) Like(
 		empty = "blank"
 	}
 	if "" != empty {
-		t.Errorf("No string to check what it is Like(); got %s for %s.",
-			empty, desc)
+		if NotBroken == o.IsBroken {
+			t.Errorf("No string to check what it is Like(); got %s for %s.",
+				empty, desc)
+		} else {
+			t.Logf(
+				"KNOWN\nNo string to check what it is Like(); got %s for %s.",
+				empty, desc)
+		}
 		return len(match)
 	}
 
@@ -878,21 +1019,42 @@ func (o Options) Like(
 			if negate == strings.Contains(lgot, lwant) {
 				failed++
 				sMatch := o.ReplaceNewlines(m[1:])
-				if negate {
-					t.Errorf(and+"Found unwanted <%s>...", sMatch)
+				if NotBroken == o.IsBroken {
+					if negate {
+						t.Errorf(and+"Found unwanted <%s>...", sMatch)
+					} else {
+						t.Errorf(and+"No <%s>...", sMatch)
+					}
 				} else {
-					t.Errorf(and+"No <%s>...", sMatch)
+					if negate {
+						t.Logf("KNOWN\n"+and+"Found unwanted <%s>...", sMatch)
+					} else {
+						t.Logf("KNOWN\n"+and+"No <%s>...", sMatch)
+					}
 				}
 			}
 		} else if re, err := regexp.Compile(m); nil != err {
 			invalid++
-			t.Errorf(and+"Invalid regexp (%s) in test code: %v", m, err)
+			if NotBroken == o.IsBroken {
+				t.Errorf(and+"Invalid regexp (%s) in test code: %v", m, err)
+			} else {
+				t.Logf("KNOWN\n"+and+"Invalid regexp (%s) in test code: %v",
+					m, err)
+			}
 		} else if negate == ("" != re.FindString(sgot)) {
 			failed++
-			if negate {
-				t.Errorf(and+"Like unwanted /%s/...", m)
+			if NotBroken == o.IsBroken {
+				if negate {
+					t.Errorf(and+"Like unwanted /%s/...", m)
+				} else {
+					t.Errorf(and+"Not like /%s/...", m)
+				}
 			} else {
-				t.Errorf(and+"Not like /%s/...", m)
+				if negate {
+					t.Logf("KNOWN\n"+and+"Like unwanted /%s/...", m)
+				} else {
+					t.Logf("KNOWN\n"+and+"Not like /%s/...", m)
+				}
 			}
 		}
 		if 0 < failed {
@@ -900,7 +1062,15 @@ func (o Options) Like(
 		}
 	}
 	if 0 < failed {
-		t.Errorf("In <%s> for %s.", sgot, desc)
+		if NotBroken == o.IsBroken {
+			t.Errorf("In <%s> for %s.", sgot, desc)
+		} else {
+			t.Logf("KNOWN\nIn <%s> for %s.", sgot, desc)
+		}
+	}
+	if 0 == failed + invalid {
+		o.ifFixed(desc, t)
+		return 0
 	}
 	return failed + invalid
 }
